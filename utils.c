@@ -2,6 +2,7 @@
 
 #include "logger.h"
 
+#include <string.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <sys/utsname.h>
@@ -33,4 +34,17 @@ int checkIfDirectoryExists(const char* dir)
     int err = stat(dir, &s);
     if(err == -1) return -1;
     return S_ISDIR(s.st_mode);
+}
+
+void moveUpDirectory(char *path)
+{
+    int n = strlen(path);
+    for(int i = n - 1; i >= 0; --i)
+    {
+        if(path[i] == '/')
+        {
+            path[i] = '\0';
+            break;
+        }
+    }
 }
