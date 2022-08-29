@@ -11,7 +11,7 @@ debug : $(objs)
 main.o: logger.h utils.h cmds/cmds.h
 logger.o : logger.h
 utils.o : utils.h
-cmds/cd.o: logger.h cmds/cmds.h
+cmds/cd.o: logger.h cmds/cmds.h utils.h
 cmds/pwd.o: logger.h cmds/cmds.h
 cmds/echo.o: logger.h cmds/cmds.h
 

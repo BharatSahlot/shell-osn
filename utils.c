@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <pwd.h>
 #include <sys/utsname.h>
+#include <sys/stat.h>
 
 struct utsname uts;
 
@@ -24,4 +25,12 @@ const char* getSystemName()
         return "system";
     }
     return uts.sysname;
+}
+
+int checkIfDirectoryExists(const char* dir)
+{
+    struct stat s;
+    int err = stat(dir, &s);
+    if(err == -1) return -1;
+    return S_ISDIR(s.st_mode);
 }

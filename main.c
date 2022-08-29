@@ -8,8 +8,8 @@
 
 char prompt[50];
 char cmd[250];
-char path[50] = "~";
-char absolute_path[50];
+char path[250] = "~";
+char absolute_path[250];
 
 typedef struct
 {
@@ -27,7 +27,6 @@ void ExecuteCommand(char* cmd)
     {
         if(strcmp(p, commands[i].cmd) == 0)
         {
-            // Log(LOGL_INFO, "%s is an inbuilt command", p);
             commands[i].func(p + strlen(p) + 1);
             return;
         }
@@ -38,7 +37,7 @@ void ExecuteCommand(char* cmd)
 
 int main (int argc, char *argv[])
 {
-    getcwd(absolute_path, 50);
+    getcwd(absolute_path, 250);
 
     commands[0].cmd = "cd";
     commands[0].func = cd;
