@@ -6,5 +6,6 @@
 #define LOGL_ERROR 2
 
 void Log(int level, const char* format, ...);
+void LogPError(const char* format, ...);
 
 #endif

@@ -4,27 +4,41 @@
 #include <stdio.h>
 #include <string.h>
 
+char errBuf[512];
 void Log(int level, const char *format, ...)
 {
-    char buffer[512];
     switch (level) {
         case 0:
-            strcpy(buffer, "\033[39m");
+            strcpy(errBuf, "\033[39m");
             break;
         case 1:
-            strcpy(buffer, "\033[33m");
+            strcpy(errBuf, "\033[33m");
             break;
         case 2:
-            strcpy(buffer, "\033[31m");
+            strcpy(errBuf, "\033[31m");
             break;
     }
 
     va_list args;
     va_start(args, format);
-    vsprintf(buffer + 5, format, args);
+    int len = vsprintf(errBuf + 5, format, args);
+    strcpy(errBuf + 5 + len, "\033[0m");
 
-    if(level == LOGL_ERROR) perror(buffer);
-    else printf("%s\n", buffer);
+    if(level == LOGL_ERROR) fprintf(stderr, "%s", errBuf);
+    else printf("%s", errBuf);
 
+    va_end(args);
+}
+
+
+void LogPError(const char *format, ...)
+{
+    // strcpy(errBuf, "\033[31m");
+    fprintf(stderr, "\033[31m");
+
+    va_list args;
+    va_start(args, format);
+    vsprintf(errBuf, format, args);
+    perror(errBuf);
     va_end(args);
 }
