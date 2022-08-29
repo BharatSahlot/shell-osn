@@ -16,6 +16,12 @@ void joinPaths(char* p1, char* p2)
     int n = strlen(p1);
     p1[n] = '/';
     if(*p2 == '/') ++p2;
+
+    int n1 = strlen(p2);
+
+    // paths shouldn't end with /
+    if(p2[n1 - 1] == '/') p2[n1 - 1] = '\0';
+
     strcpy(p1 + n + 1, p2);
 }
 
@@ -47,19 +53,25 @@ void cd(char *args)
         return;
     }
 
-    if(strcmp(args, ".") == 0) return;
-    if(strcmp(args, "-") == 0)
+    pc = strtok(args, " \n");
+    if(pc[0] == '/')
+    {
+        Log(LOGL_ERROR, "cd: absolute paths not supported\n");
+        return;
+    }
+    if(strcmp(pc, ".") == 0) return;
+    if(strcmp(pc, "-") == 0)
     {
         printf("%s\n", path);
         return;
     }
-    if(strcmp(args, "~") == 0)
+    if(strcmp(pc, "~") == 0)
     {
         strcpy(path, "~");
         strcpy(absolute_path, home_path);
         return;
     }
-    if(strcmp(args, "..") == 0)
+    if(strcmp(pc, "..") == 0)
     {
         if(strcmp(path, "~") == 0)
         {
@@ -72,7 +84,7 @@ void cd(char *args)
     }
 
     // cd into folder
-    char* dir = args;
+    char* dir = pc;
     if(*dir == '~' && *(dir + 1) == '/')
     {
         dir += 2;
@@ -80,7 +92,7 @@ void cd(char *args)
 
     if(strcmp(dir, "..") == 0 || strcmp(dir, ".") == 0 || strcmp(dir, "~") == 0)
     {
-        Log(LOGL_ERROR, "%s not a directory\n", args);
+        Log(LOGL_ERROR, "cd: %s not a directory\n", pc);
         return;
     }
 
@@ -89,13 +101,13 @@ void cd(char *args)
     moveUpDirectory(absolute_path);
     if(status == 0)
     {
-        Log(LOGL_ERROR, "cd: %s is not a directory\n", args);
+        Log(LOGL_ERROR, "cd: %s is not a directory\n", pc);
     } else if(status == 1)
     {
         joinPaths(path, dir);
         joinPaths(absolute_path, dir);
     } else if(status == -1)
     {
-        LogPError("cd: error cding into directory");
+        LogPError("cd: error cding into directory %s", pc);
     }
 }
