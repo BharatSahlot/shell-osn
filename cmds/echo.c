@@ -4,5 +4,10 @@
 
 void echo(int argc, char* argv[])
 {
-    printf("%s", argv[1]);
+    for(int i = 1; i < argc; i++)
+    {
+        if(i > 1) printf(" ");
+        printf("%s", argv[i]);
+    }
+    printf("\n");
 }
