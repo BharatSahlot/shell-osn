@@ -71,3 +71,17 @@ void moveUpDirectory(char *path)
         }
     }
 }
+
+void joinPaths(char* p1, char* p2)
+{
+    int n = strlen(p1);
+    p1[n] = '/';
+    if(*p2 == '/') ++p2;
+
+    int n1 = strlen(p2);
+
+    // paths shouldn't end with /
+    if(p2[n1 - 1] == '/') p2[n1 - 1] = '\0';
+
+    strcpy(p1 + n + 1, p2);
+}

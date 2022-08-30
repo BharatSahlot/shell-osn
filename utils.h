@@ -14,4 +14,6 @@ int isDir(const char* dir);
 int isFile(const char* dir);
 void moveUpDirectory(char* path);
 
+void joinPaths(char* p1, char* p2);
+
 #endif
