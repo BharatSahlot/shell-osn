@@ -173,6 +173,9 @@ void lss(char* path, int displayHiddenFiles, int displayExtraInfo)
                 if(isDir(items[i]) == 1)
                 {
                     printf("\033[1;34m%s\033[0m\n", items[i]);
+                } else if(isExecutable(items[i]) == 1)
+                {
+                    printf("\033[1;32m%s\033[0m\n", items[i]);
                 } else printf("%s\n", items[i]);
             }
             free(items);

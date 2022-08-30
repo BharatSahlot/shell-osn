@@ -59,6 +59,14 @@ int isFile(const char* dir)
     return S_ISREG(s.st_mode);
 }
 
+int isExecutable(const char* dir)
+{
+    struct stat s;
+    int err = stat(dir, &s);
+    if(err == -1) return -1;
+    return S_ISREG(s.st_mode) && (s.st_mode & S_IXUSR);
+}
+
 void moveUpDirectory(char *path)
 {
     int n = strlen(path);
