@@ -10,6 +10,8 @@
 extern char path[250];
 extern char home_path[250];
 
+char prevPath[250];
+
 void joinPaths(char* p1, char* p2)
 {
     int n = strlen(p1);
@@ -22,6 +24,19 @@ void joinPaths(char* p1, char* p2)
     if(p2[n1 - 1] == '/') p2[n1 - 1] = '\0';
 
     strcpy(p1 + n + 1, p2);
+}
+
+void formatPath(char* path)
+{
+    if(strncmp(path, home_path, strlen(home_path)) == 0)
+    {
+        int hn = strlen(home_path);
+        int pn = strlen(path);
+
+        memmove(path + 1, path + hn,  pn - hn);
+        path[0] = '~';
+        path[pn - hn + 1] = '\0';
+    }
 }
 
 void cd(int argc, char* argv[])
@@ -44,9 +59,25 @@ void cd(int argc, char* argv[])
     }
 
     char* flag = argv[1];
-    if(strcmp(flag, ".") == 0) return;
+    if(strcmp(flag, ".") == 0)
+    {
+        getcwd(prevPath, 250);
+        return;
+    }
+
     if(strcmp(flag, "-") == 0)
     {
+        if(strlen(prevPath) == 0) strcpy(prevPath, home_path);
+        getcwd(path, 250);
+        if(chdir(prevPath) == -1)
+        {
+            formatPath(path);
+            LogPError("cd");
+            return;
+        }
+        strcpy(prevPath, path);
+        getcwd(path, 250);
+        formatPath(path);
         printf("%s\n", path);
         return;
     }
@@ -57,10 +88,12 @@ void cd(int argc, char* argv[])
             LogPError("cd: Error cd into ~");
             return;
         }
+        strcpy(prevPath, home_path);
         strcpy(path, "~");
         return;
     }
 
+    getcwd(prevPath, 250);
     if(*flag == '~')
     {
         if(*(flag + 1) != '/')
@@ -86,13 +119,5 @@ void cd(int argc, char* argv[])
         }
         getcwd(path, 250);
     }
-    if(strncmp(path, home_path, strlen(home_path)) == 0)
-    {
-        int hn = strlen(home_path);
-        int pn = strlen(path);
-
-        memmove(path + 1, path + hn,  pn - hn);
-        path[0] = '~';
-        path[pn - hn + 1] = '\0';
-    }
+    formatPath(path);
 }
