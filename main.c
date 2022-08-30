@@ -21,13 +21,13 @@ typedef struct
     void (*func) (int argc, char* argv[]);
 } Command;
 
-Command commands[3];
+Command commands[4];
 
 void ExecuteCommand(char* cmd)
 {
     char* p = strtok(cmd, " \t\n");
     if(p == NULL) return;
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < 4; i++)
     {
         if(strcmp(p, commands[i].cmd) == 0)
         {
@@ -69,6 +69,10 @@ int main (int argc, char *argv[])
     commands[2].cmd = "pwd";
     commands[2].func = pwd;
     commands[2].shouldTokenize = 0;
+
+    commands[3].cmd = "ls";
+    commands[3].func = ls;
+    commands[3].shouldTokenize = 1;
 
     sprintf(prompt, "%s@%s", getUserName(), getSystemName());
 

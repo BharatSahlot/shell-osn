@@ -1,4 +1,4 @@
-objs = main.o logger.o utils.o cmds/cd.o cmds/pwd.o cmds/echo.o
+objs = main.o logger.o utils.o cmds/cd.o cmds/pwd.o cmds/echo.o cmds/ls.o
 
 all : $(objs)
 	gcc -O2 -o build/build $(objs)
@@ -14,6 +14,7 @@ utils.o : utils.h
 cmds/cd.o: logger.h cmds/cmds.h utils.h
 cmds/pwd.o: logger.h cmds/cmds.h
 cmds/echo.o: logger.h cmds/cmds.h
+cmds/ls.o: logger.h cmds/cmds.h
 
 clean :
 	rm -r build/build $(objs)
