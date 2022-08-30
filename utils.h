@@ -1,9 +1,17 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <unistd.h>
+
 const char* getUserName();
+const char* getUserNameFromId(uid_t id);
+
+const char* getGroupName(gid_t gid);
+
 const char* getSystemName();
-int checkIfDirectoryExists(const char* dir);
+
+int isDir(const char* dir);
+int isFile(const char* dir);
 void moveUpDirectory(char* path);
 
 #endif
