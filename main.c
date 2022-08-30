@@ -9,7 +9,6 @@
 char prompt[50];
 char cmd[250];
 char path[250] = "~";
-char absolute_path[250] = "";
 char home_path[250];
 
 typedef struct
@@ -22,7 +21,7 @@ Command commands[3];
 
 void ExecuteCommand(char* cmd)
 {
-    char* p = strtok(cmd, " \n");
+    char* p = strtok(cmd, " \t\n");
     if(p == NULL) return;
     for(int i = 0; i < 3; i++)
     {
@@ -39,7 +38,6 @@ void ExecuteCommand(char* cmd)
 int main (int argc, char *argv[])
 {
     getcwd(home_path, 250);
-    strcpy(absolute_path, home_path);
 
     commands[0].cmd = "cd";
     commands[0].func = cd;

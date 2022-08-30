@@ -9,7 +9,6 @@
 
 extern char path[250];
 extern char home_path[250];
-extern char absolute_path[250];
 
 void joinPaths(char* p1, char* p2)
 {
@@ -42,8 +41,12 @@ void cd(char *args)
     }
     if(argc == 0)
     {
+        if(chdir(home_path) == -1)
+        {
+            LogPError("cd: Error cd into ~");
+            return;
+        }
         strcpy(path, "~");
-        strcpy(absolute_path, home_path);
         return;
     }
 
@@ -67,48 +70,47 @@ void cd(char *args)
     }
     if(strcmp(pc, "~") == 0)
     {
-        strcpy(path, "~");
-        strcpy(absolute_path, home_path);
-        return;
-    }
-    if(strcmp(pc, "..") == 0)
-    {
-        if(strcmp(path, "~") == 0)
+        if(chdir(home_path) == -1)
         {
-            printf("%s\n", home_path);
+            LogPError("cd: Error cd into ~");
             return;
         }
-        moveUpDirectory(path);
-        moveUpDirectory(absolute_path);
+        strcpy(path, "~");
         return;
     }
 
-    // cd into folder
-    char* dir = pc;
-    if(*dir == '~' && *(dir + 1) == '/')
+    if(*pc == '~')
     {
-        dir += 2;
+        if(*(pc + 1) != '/')
+        {
+            Log(LOGL_ERROR, "cd: Invalid path\n");
+            return;
+        }
+        char temp[250];
+        strcpy(temp, home_path);
+        joinPaths(temp, pc + 1);
+        if(chdir(temp) == -1)
+        {
+            LogPError("cd");
+            return;
+        }
+        getcwd(path, 250);
+    } else
+    {
+        if(chdir(pc) == -1)
+        {
+            LogPError("cd");
+            return;
+        }
+        getcwd(path, 250);
     }
+    if(strncmp(path, home_path, strlen(home_path)) == 0)
+    {
+        int hn = strlen(home_path);
+        int pn = strlen(path);
 
-    // so that paths like ~/.. are ignored
-    if(strcmp(dir, "..") == 0 || strcmp(dir, ".") == 0 || strcmp(dir, "~") == 0)
-    {
-        Log(LOGL_ERROR, "cd: %s not a directory\n", pc);
-        return;
-    }
-
-    joinPaths(absolute_path, dir);
-    int status = checkIfDirectoryExists(absolute_path);
-    moveUpDirectory(absolute_path);
-    if(status == 0)
-    {
-        Log(LOGL_ERROR, "cd: %s is not a directory\n", pc);
-    } else if(status == 1)
-    {
-        joinPaths(path, dir);
-        joinPaths(absolute_path, dir);
-    } else if(status == -1)
-    {
-        LogPError("cd: error cding into directory %s", pc);
+        memmove(path + 1, path + hn,  pn - hn);
+        path[0] = '~';
+        path[pn - hn + 1] = '\0';
     }
 }
