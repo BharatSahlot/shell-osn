@@ -2,8 +2,8 @@
 #define CMDS_H
 
 // THINK: make or not make const
-void cd(char* args);
-void pwd(char* args);
-void echo(char* args);
+void cd  (int argc, char* argv[]);
+void pwd (int argc, char* argv[]);
+void echo(int argc, char* argv[]);
 
 #endif

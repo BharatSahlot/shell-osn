@@ -24,22 +24,9 @@ void joinPaths(char* p1, char* p2)
     strcpy(p1 + n + 1, p2);
 }
 
-void cd(char *args)
+void cd(int argc, char* argv[])
 {
-    args[strlen(args)] = '\0';
-
-    int argc = 0;
-    char* pc = strtok(args, " \n");
-    while(pc != NULL)
-    {
-        if(strlen(pc) > 0)
-        {
-            // printf("%s\n", pc);
-            argc++;
-        }
-        pc = strtok(NULL, " \n");
-    }
-    if(argc == 0)
+    if(argc == 1)
     {
         if(chdir(home_path) == -1)
         {
@@ -50,25 +37,20 @@ void cd(char *args)
         return;
     }
 
-    if(argc > 1)
+    if(argc > 2)
     {
-        Log(LOGL_ERROR, "cd: Expected 1 arg found %d\n", argc);
+        Log(LOGL_ERROR, "cd: Unsupported number of arguements %d\n", argc - 1);
         return;
     }
 
-    pc = strtok(args, " \n");
-    if(pc[0] == '/')
-    {
-        Log(LOGL_ERROR, "cd: absolute paths not supported\n");
-        return;
-    }
-    if(strcmp(pc, ".") == 0) return;
-    if(strcmp(pc, "-") == 0)
+    char* flag = argv[1];
+    if(strcmp(flag, ".") == 0) return;
+    if(strcmp(flag, "-") == 0)
     {
         printf("%s\n", path);
         return;
     }
-    if(strcmp(pc, "~") == 0)
+    if(strcmp(flag, "~") == 0)
     {
         if(chdir(home_path) == -1)
         {
@@ -79,16 +61,16 @@ void cd(char *args)
         return;
     }
 
-    if(*pc == '~')
+    if(*flag == '~')
     {
-        if(*(pc + 1) != '/')
+        if(*(flag + 1) != '/')
         {
             Log(LOGL_ERROR, "cd: Invalid path\n");
             return;
         }
         char temp[250];
         strcpy(temp, home_path);
-        joinPaths(temp, pc + 1);
+        joinPaths(temp, flag + 1);
         if(chdir(temp) == -1)
         {
             LogPError("cd");
@@ -97,7 +79,7 @@ void cd(char *args)
         getcwd(path, 250);
     } else
     {
-        if(chdir(pc) == -1)
+        if(chdir(flag) == -1)
         {
             LogPError("cd");
             return;

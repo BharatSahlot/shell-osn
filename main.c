@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -11,10 +12,13 @@ char cmd[250];
 char path[250] = "~";
 char home_path[250];
 
+char* argsBuf[10];
+
 typedef struct
 {
     const char* cmd;
-    void (*func) (char* args);
+    int shouldTokenize;
+    void (*func) (int argc, char* argv[]);
 } Command;
 
 Command commands[3];
@@ -27,7 +31,20 @@ void ExecuteCommand(char* cmd)
     {
         if(strcmp(p, commands[i].cmd) == 0)
         {
-            commands[i].func(p + strlen(p) + 1);
+            int argc = 0;
+            if(commands[i].shouldTokenize)
+            {
+                while(p != NULL)
+                {
+                    strcpy(argsBuf[argc++], p);
+                    p = strtok(NULL, " \t\n");
+                }
+            } else
+            {
+                strcpy(argsBuf[argc++], p);
+                strcpy(argsBuf[argc++], p + strlen(p) + 1);
+            }
+            commands[i].func(argc, argsBuf);
             return;
         }
     }
@@ -37,16 +54,21 @@ void ExecuteCommand(char* cmd)
 
 int main (int argc, char *argv[])
 {
+    for(int i = 0; i < 10; i++) argsBuf[i] = (char*) malloc(50 * sizeof(char));
+
     getcwd(home_path, 250);
 
     commands[0].cmd = "cd";
     commands[0].func = cd;
+    commands[0].shouldTokenize = 1;
 
     commands[1].cmd = "echo";
     commands[1].func = echo;
+    commands[1].shouldTokenize = 0;
 
     commands[2].cmd = "pwd";
     commands[2].func = pwd;
+    commands[2].shouldTokenize = 0;
 
     sprintf(prompt, "%s@%s", getUserName(), getSystemName());
 
@@ -89,5 +111,7 @@ int main (int argc, char *argv[])
             // printf("fg: %s\n", st);
         }
     }
+
+    for(int i = 0; i < 10; i++) free(argsBuf[i]);
     return 0;
 }

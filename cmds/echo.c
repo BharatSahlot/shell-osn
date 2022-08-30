@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-void echo(char *args)
+void echo(int argc, char* argv[])
 {
-    printf("%s\n", args);
+    printf("%s", argv[1]);
 }
