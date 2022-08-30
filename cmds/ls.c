@@ -11,6 +11,59 @@
 #include <errno.h>
 #include <time.h>
 
+int cmp(const void* _a, const void* _b)
+{
+    const char* a = *(const char**)_a;
+    const char* b = *(const char**)_b;
+    return strcmp(a, b);
+}
+
+char** getItemsInDir(const char* path, int* outCount, int includeHidden, int sorted)
+{
+    char** res = NULL;
+    DIR* dir = opendir(path);
+
+    *outCount = -1;
+    errno = 0;
+    int count = 0;
+    struct dirent* item = readdir(dir);
+    while(item != NULL)
+    {
+        if(includeHidden || item->d_name[0] != '.') count++;
+        item = readdir(dir);
+    }
+    if(errno) return NULL;
+
+    seekdir(dir, 0);
+    item = readdir(dir);
+    res = (char**) malloc(count * sizeof(char**));
+    for(int i = 0; i < count; i++) res[i] = NULL;
+
+    for(int i = 0; i < count;)
+    {
+        if(includeHidden || item->d_name[0] != '.')
+        {
+            res[i] = (char*) malloc(strlen(item->d_name) * sizeof(char));
+            strcpy(res[i], item->d_name);
+            i++;
+        }
+        item = readdir(dir);
+    }
+    if(errno)
+    {
+        for(int i = 0; i < count; i++) if(res[i]) free(res[i]);
+        free(res);
+        return NULL;
+    }
+    if(sorted)
+    {
+        // if(includeHidden) qsort(res + 2, count - 2, sizeof(char*), cmp);
+        qsort(res, count, sizeof(char*), cmp);
+    }
+    *outCount = count;
+    return res;
+}
+
 int genPermString(mode_t st_mode, char* out)
 {
     for(int i = 0; i < 10; i++) out[i] = '-';
@@ -98,64 +151,45 @@ void lss(char* path, int displayHiddenFiles, int displayExtraInfo)
         }
     } else if(isDir(path))
     {
-        DIR* dir = opendir(path);
-        if(dir == NULL)
+        int count = 0;
+        char** items = getItemsInDir(path, &count, displayHiddenFiles, 1);
+        if(items == NULL)
         {
             LogPError("ls");
             return;
         }
-        errno = 0;
 
-        int pathLen = strlen(path);
+        char** buf = (char**) malloc(sizeof(char**) * count);
+        for(int i = 0; i < count; i++) buf[i] = NULL;
+
         char tp[250];
-        strcpy(tp, path);
-
-        int lines = 0;
-        struct dirent* item = readdir(dir);
-        while(item != NULL)
-        {
-            if(displayHiddenFiles || item->d_name[0] != '.') ++lines;
-            item = readdir(dir);
-        }
-        if(errno)
-        {
-            LogPError("ls");
-            closedir(dir);
-            return;
-        }
-        seekdir(dir, 0);
-        item = readdir(dir);
-
         struct stat st;
-
-        char** buf = (char**) malloc(lines * sizeof(char*));
-        for(int i = 0; i < lines; i++) buf[i] = NULL;
-
-        int j = 0;
-        for(int i = 0; i < lines && item != NULL; i++)
+        for(int i = 0; i < count; i++)
         {
-            if(displayHiddenFiles || item->d_name[0] != '.')
+            buf[i] = (char*) malloc(sizeof(char*) * 150);
+
+            strcpy(tp, path);
+            joinPaths(tp, items[i]);
+
+            int err = stat(tp, &st);
+            if(err == -1)
             {
-                strcpy(tp, path);
-                joinPaths(tp, item->d_name);
-
-                buf[j] = (char*) malloc(sizeof(char) * 250);
-                
-                stat(tp, &st);
-                genlsLine(tp, &st, buf[j++]);
+                for(int j = 0; j <= i; j++) free(buf[j]);
+                free(buf);
+                free(items);
+                LogPError("ls");
+                return;
             }
+            genlsLine(tp, &st, buf[i]);
+        }
 
-            item = readdir(dir);
-        }
-        if(errno) LogPError("ls");
-        for(int i = 0; i < lines; i++)
+        for(int i = 0; i < count; i++)
         {
-            if(buf[i] == NULL) continue;
             printf("%s\n", buf[i]);
-            free(buf[i]);
         }
+        for(int j = 0; j < count; j++) free(buf[j]);
         free(buf);
-        closedir(dir);
+        free(items);
     } else
     {
         Log(LOGL_ERROR, "ls: No such file or directory %s\n", path);
