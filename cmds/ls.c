@@ -18,6 +18,16 @@ int cmp(const void* _a, const void* _b)
     return strcmp(a, b);
 }
 
+int getLastItemFromPath(const char* path)
+{
+    int n = strlen(path);
+    for(int i = n - 1; i >= 0; i--)
+    {
+        if(path[i] == '/') return i + 1;
+    }
+    return 0;
+}
+
 char** getItemsInDir(const char* path, int* outCount, int includeHidden, int sorted)
 {
     char** res = NULL;
@@ -110,21 +120,17 @@ void genlsLine(const char* path, struct stat* st, char* out)
     n += strftime(out + n, 13, "%h %d %R", localtime(&st->st_mtime));
     out[n++] = ' ';
 
-    int pi = 0, pn = strlen(path);
-    for(pi = pn; pi >= 0; pi--)
-    {
-        if(path[pi] == '/') break;
-    }
+    const char* pi = path + getLastItemFromPath(path);
     if(S_ISDIR(st->st_mode))
     {
-        sprintf(out + n, "\033[1;34m%s\033[0m", path + pi + 1);
+        sprintf(out + n, "\033[1;34m%s\033[0m", pi);
         n += 11;
     } else
     {
-        sprintf(out + n, "%s", path + pi + 1);
+        sprintf(out + n, "%s", pi);
     }
     // strcpy(out + n, path);
-    n += strlen(path + pi + 1);
+    n += strlen(pi);
     out[n] = '\0';
 }
 
@@ -147,15 +153,29 @@ void lss(char* path, int displayHiddenFiles, int displayExtraInfo)
             printf("%s\n", line);
         } else
         {
-            printf("%s\n", path);
+            const char* pi = path + getLastItemFromPath(path);
+            printf("%s\n", pi);
         }
-    } else if(isDir(path))
+    } else if(isDir(path) == 1)
     {
         int count = 0;
         char** items = getItemsInDir(path, &count, displayHiddenFiles, 1);
         if(items == NULL)
         {
             LogPError("ls");
+            return;
+        }
+
+        if(!displayExtraInfo)
+        {
+            for(int i = 0; i < count; i++)
+            {
+                if(isDir(items[i]) == 1)
+                {
+                    printf("\033[1;34m%s\033[0m\n", items[i]);
+                } else printf("%s\n", items[i]);
+            }
+            free(items);
             return;
         }
 
@@ -220,10 +240,17 @@ void ls(int argc, char **argv)
         }
     }
     
+    int printed = 0;
     for(int i = 1; i < argc; i++)
     {
         if(argv[i][0] == '-') continue;
-        if(count > 1) printf("%s:\n", argv[i]);
+        if(count > 1)
+        {
+            if(printed) printf("\n");
+            printed = 1;
+
+            if(isDir(argv[1]) == 1) printf("%s:\n", argv[i]);
+        }
         lss(argv[i], displayHiddenFiles, displayExtraInfo);
     }
 }

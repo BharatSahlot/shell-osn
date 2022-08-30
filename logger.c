@@ -22,10 +22,9 @@ void Log(int level, const char *format, ...)
     va_list args;
     va_start(args, format);
     int len = vsprintf(errBuf + 5, format, args);
-    strcpy(errBuf + 5 + len, "\033[0m");
 
-    if(level == LOGL_ERROR) fprintf(stderr, "%s", errBuf);
-    else printf("%s", errBuf);
+    if(level == LOGL_ERROR) fprintf(stderr, "%s\033[0m", errBuf);
+    else printf("%s\033[0m", errBuf);
 
     va_end(args);
 }
