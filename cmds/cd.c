@@ -90,6 +90,7 @@ void cd(char *args)
         dir += 2;
     }
 
+    // so that paths like ~/.. are ignored
     if(strcmp(dir, "..") == 0 || strcmp(dir, ".") == 0 || strcmp(dir, "~") == 0)
     {
         Log(LOGL_ERROR, "cd: %s not a directory\n", pc);
