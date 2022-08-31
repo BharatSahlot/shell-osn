@@ -13,7 +13,7 @@ void pwd(int argc, char* argv[])
 {
     if(argc > 1)
     {
-        Log(LOGL_ERROR, "pwd: unsupported flags %s\n", argv[1]);
+        Log(LOGL_ERROR, "pwd: too many arguments\n");
         return;
     }
     getcwd(dir, 250);

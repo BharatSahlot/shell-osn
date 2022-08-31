@@ -6,7 +6,7 @@ The working directory of the shell at startup, that is the directory where it wa
 
 Commands can be chained with `;` or `&`. `;` will run the previous command in foreground, whereas `&` will run it in background.
 
-#### Inbuild Commands
+#### Inbuilt Commands
 
 - **echo:** `<space-tab-separated-strings>` prints the strings as it as, while ignring the spacing.
 - **cd:** `-, ., .., <relative-path>, <absolute-path>`
@@ -15,7 +15,12 @@ Commands can be chained with `;` or `&`. `;` will run the previous command in fo
 
 #### More info
 
-##### ls
+##### cd : change directory
+
+- Flags: `-`
+    - `-`: Goes to previous directory and prints its path. By default the directory where the shell was executed from is considered to be the previous directory.
+
+##### ls : list files/directories
 
 - Flags: `a, l`
     - `a`: display hidden files

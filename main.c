@@ -68,7 +68,7 @@ int main (int argc, char *argv[])
 
     commands[2].cmd = "pwd";
     commands[2].func = pwd;
-    commands[2].shouldTokenize = 0;
+    commands[2].shouldTokenize = 1;
 
     commands[3].cmd = "ls";
     commands[3].func = ls;
