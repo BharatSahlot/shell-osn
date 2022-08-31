@@ -11,6 +11,7 @@
 #include <grp.h>
 
 struct utsname uts;
+char sysName[50];
 
 const char* getUserName()
 {
@@ -35,12 +36,9 @@ const char* getGroupName(gid_t gid)
 
 const char* getSystemName()
 {
-    if(uname(&uts) != 0)
-    {
-        Log(LOGL_ERROR, "Cannot get system name");
-        return "system";
-    }
-    return uts.sysname;
+    int err = gethostname(sysName, 50);
+    if(err == -1) return NULL;
+    return sysName;
 }
 
 int isDir(const char* dir)

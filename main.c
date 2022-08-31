@@ -74,11 +74,17 @@ int main (int argc, char *argv[])
     commands[3].func = ls;
     commands[3].shouldTokenize = 1;
 
-    sprintf(prompt, "%s@%s", getUserName(), getSystemName());
+    const char* sysName = getSystemName();
+    if(sysName == NULL)
+    {
+        LogPError("Prompt");
+        sysName = "Linux";
+    }
+    sprintf(prompt, "%s@%s", getUserName(), sysName);
 
     while(1)
     {
-        printf("\033[36m<%s:%s> \033[0m", prompt, path);
+        printf("\033[90m<%s:\033[1;33m%s\033[90m> \033[0m", prompt, path);
         if(fgets(cmd, 249, stdin) == NULL)
         {
             LogPError("Error while reading stdin");
