@@ -10,6 +10,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <time.h>
+#include <unistd.h>
 
 int cmp(const void* _a, const void* _b)
 {
@@ -243,6 +244,14 @@ void ls(int argc, char **argv)
         }
     }
     
+    if(count == 0)
+    {
+        char dir[250];
+        getcwd(dir, 250);
+        lss(dir, displayHiddenFiles, displayExtraInfo);
+        return;
+    }
+
     int printed = 0;
     for(int i = 1; i < argc; i++)
     {
@@ -250,7 +259,7 @@ void ls(int argc, char **argv)
         if(count > 1)
         {
             if(printed) printf("\n");
-            printed = 1;
+            printed++;
 
             if(isDir(argv[1]) == 1) printf("%s:\n", argv[i]);
         }
