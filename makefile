@@ -1,20 +1,16 @@
-objs = main.o logger.o utils.o cmds/cd.o cmds/pwd.o cmds/echo.o cmds/ls.o
+CC := gcc
+CFLAGS := -O2
 
-all : $(objs)
-	gcc -O2 -o build/build $(objs)
+objects := src/main.o src/utils.o src/logger.o \
+		   src/builtins/cd.o src/builtins/pwd.o src/builtins/ls.o src/builtins/echo.o \
+		   src/core/execute.o src/core/parse.o src/core/prompt.o \
 
-debug : $(objs)
-	gcc -g -o build/build $(objs)
+$(objects): %.o: %.c
+
+all: $(objects) src/globals.h
+	$(CC) $(CFLAGS) $(objects) -o batak
 
 .PHONY : all
 
-main.o: logger.h utils.h cmds/cmds.h
-logger.o : logger.h
-utils.o : utils.h logger.h
-cmds/cd.o: logger.h cmds/cmds.h utils.h
-cmds/pwd.o: logger.h cmds/cmds.h utils.h
-cmds/echo.o: cmds/cmds.h
-cmds/ls.o: logger.h cmds/cmds.h utils.h
-
-clean :
-	rm -r build/build $(objs)
+clean:
+	rm -f $(objects) batak
