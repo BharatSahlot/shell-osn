@@ -15,9 +15,11 @@ int execute(int executeInBackground, const char *cmd, int argc, const char **arg
         if(strcmp(commandArr[i].cmd, cmd) == 0)
         {
             int status = commandArr[i].func(argc, argv);
+            lastCommandStatus = status;
             return status;
         }
     }
+    lastCommandStatus = -1;
     Log(LOGL_ERROR, "exec: %s not an inbuilt command\n", cmd);
     return -1;
 }

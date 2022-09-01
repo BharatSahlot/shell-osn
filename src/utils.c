@@ -60,7 +60,7 @@ const char* makePathAbsolute(const char* path)
         int home_len = strlen(home);
         strcpy(tempPathBuf, home);
         tempPathBuf[home_len] = '/';
-        strcpy(tempPathBuf + home_len + 1, path);
+        strcpy(tempPathBuf + home_len + 1, path + 1);
     } else
     {
         int path_len = strlen(currentPath);

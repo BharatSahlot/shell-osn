@@ -4,8 +4,10 @@
 #include "core/parse.h"
 #include "core/prompt.h"
 #include "logger.h"
+#include "utils.h"
 
 #include <stdio.h>
+#include <string.h>
 
 int commandCount;
 Command commandArr[10];
@@ -16,6 +18,9 @@ long long lastCommandTime;
 
 int main (int argc, char *argv[])
 {
+    getWorkingDir();
+    strcpy(home, currentPath);
+
     useBuiltins();
 
     char cmd[MAX_CMD_LENGTH];

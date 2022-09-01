@@ -27,5 +27,11 @@ void render_prompt()
         }
     }
 
-    printf(GRAY "<%s@%s:" YELLOW "%s" GRAY "> " RESET, username, sysname, addTildaToPath(currentPath));
+    if(lastCommandStatus == 0)
+    {
+        printf(GRAY "<%s@%s:" YELLOW "%s" GRAY "> " RESET, username, sysname, addTildaToPath(currentPath));
+    } else if(lastCommandStatus == -1)
+    {
+        printf(RED "<%s@%s:" YELLOW "%s" RED "> " RESET, username, sysname, addTildaToPath(currentPath));
+    }
 }
