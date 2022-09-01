@@ -16,6 +16,8 @@ long long lastCommandTime;
 
 int main (int argc, char *argv[])
 {
+    useBuiltins();
+
     char cmd[MAX_CMD_LENGTH];
     while(1)
     {

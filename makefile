@@ -2,7 +2,7 @@ CC := gcc
 CFLAGS := -O2
 
 objects := src/main.o src/utils.o src/logger.o \
-		   src/builtins/cd.o src/builtins/pwd.o src/builtins/ls.o src/builtins/echo.o \
+		   src/builtins/builtins.o src/builtins/cd.o src/builtins/pwd.o src/builtins/ls.o src/builtins/echo.o \
 		   src/core/execute.o src/core/parse.o src/core/prompt.o \
 
 $(objects): %.o: %.c
