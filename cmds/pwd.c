@@ -1,13 +1,9 @@
 #include "cmds.h"
 #include "../logger.h"
+#include "../utils.h"
 
 #include <stdio.h>
 #include <unistd.h>
-
-extern char path[250];
-extern char home_path[250];
-
-char dir[250];
 
 void pwd(int argc, char* argv[])
 {
@@ -16,6 +12,11 @@ void pwd(int argc, char* argv[])
         Log(LOGL_ERROR, "pwd: too many arguments\n");
         return;
     }
-    getcwd(dir, 250);
+    const char* dir = getCurrentDir();
+    if(dir == NULL)
+    {
+        LogPError("pwd");
+        return;
+    }
     printf("%s\n", dir);
 }

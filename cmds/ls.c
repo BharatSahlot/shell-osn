@@ -136,7 +136,7 @@ void genlsLine(const char* path, struct stat* st, char* out)
 }
 
 // prints ls for a single dir/file
-void lss(char* path, int displayHiddenFiles, int displayExtraInfo)
+void lss(const char* path, int displayHiddenFiles, int displayExtraInfo)
 {
     if(isFile(path))
     {
@@ -246,8 +246,11 @@ void ls(int argc, char **argv)
     
     if(count == 0)
     {
-        char dir[250];
-        getcwd(dir, 250);
+        const char* dir = getCurrentDir();
+        if(dir == NULL)
+        {
+            LogPError("ls");
+        }
         lss(dir, displayHiddenFiles, displayExtraInfo);
         return;
     }

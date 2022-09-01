@@ -3,6 +3,7 @@
 
 #include <unistd.h>
 
+const char* getCurrentDir();
 const char* getUserName();
 const char* getUserNameFromId(uid_t id);
 

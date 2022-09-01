@@ -13,6 +13,14 @@
 struct utsname uts;
 char sysName[50];
 
+char currentDir[250];
+
+const char* getCurrentDir()
+{
+    const char* res = getcwd(currentDir, 250);
+    return res;
+}
+
 const char* getUserName()
 {
     return getUserNameFromId(geteuid());
