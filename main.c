@@ -1,7 +1,10 @@
+#include <asm-generic/errno-base.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
+#include <errno.h>
 
 #include "logger.h"
 #include "utils.h"
@@ -11,6 +14,8 @@ char prompt[50];
 char cmd[250];
 char path[250] = "~";
 char home_path[250];
+
+int shouldExit = 0;
 
 char* argsBuf[10];
 
@@ -52,11 +57,28 @@ void ExecuteCommand(char* cmd)
     Log(LOGL_ERROR, "%s not an inbuilt command\n", p);
 }
 
+void sighandler(int signal, siginfo_t* si, void* ctx)
+{
+    printf("Signal %d\n", signal);
+    shouldExit = 1;
+}
+
+
 int main (int argc, char *argv[])
 {
     for(int i = 0; i < 10; i++) argsBuf[i] = (char*) malloc(50 * sizeof(char));
 
     getcwd(home_path, 250);
+
+    struct sigaction st;
+    st.sa_sigaction = sighandler;
+    st.sa_flags = SA_SIGINFO;
+    int err = sigaction(SIGINT, &st, NULL);
+    if(err == -1)
+    {
+        LogPError("Signal");
+        return -1;
+    }
 
     commands[0].cmd = "cd";
     commands[0].func = cd;
@@ -82,11 +104,17 @@ int main (int argc, char *argv[])
     }
     sprintf(prompt, "%s@%s", getUserName(), sysName);
 
-    while(1)
+    while(!shouldExit)
     {
         printf("\033[90m<%s:\033[1;33m%s\033[90m> \033[0m", prompt, path);
+        if(shouldExit) break;
         if(fgets(cmd, 249, stdin) == NULL)
         {
+            if(errno == EINTR)
+            {
+                Log(LOGL_INFO, "Exiting...\n");
+                break;
+            }
             LogPError("Error while reading stdin");
             return -1;
         }
