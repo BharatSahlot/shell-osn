@@ -12,6 +12,7 @@ Commands can be chained with `;` or `&`. `;` will run the previous command in fo
 - **cd:** `-, ., .., <relative-path>, <absolute-path>`
 - **pwd:** prints the current working directory. Takes no arguements.
 - **ls**: `-a, -l, <path(s)>`
+- **pinfo**: `<optional-pid>`
 
 #### Signal Handling
 
@@ -31,3 +32,7 @@ Commands can be chained with `;` or `&`. `;` will run the previous command in fo
     - `l`: display extra info
 
 Accepts paths to both directories and files. For directories it will list all the files and directories inside it.
+
+##### pinfo : process information
+
+Gives information like status and virtual memory size for the current process or process with the given PID.

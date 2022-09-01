@@ -23,6 +23,7 @@ int pinfo(int argc, const char *argv[])
         LogPError("pinfo");
         return -1;
     }
+    close(fd);
 
     char buffer[100];
     int n = read(fd, buffer, 100);
@@ -51,6 +52,8 @@ int pinfo(int argc, const char *argv[])
         return -1;
     }
     n = read(fd, buffer, 100);
+    close(fd);
+
     int vmSize = 0;
     sscanf(buffer, "%d", &vmSize);
 

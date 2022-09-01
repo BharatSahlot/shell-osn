@@ -7,6 +7,8 @@
 #define MAX_PATH_SIZE 4096
 #define MAX_ARGS 10
 #define MAX_CMD_LENGTH MAX_PATH_SIZE * MAX_ARGS
+#define HCOMMANDS_TO_STORE 20
+#define HCOMMANDS_TO_DISPLAY 10
 
 #define RED "\033[31m"
 #define GREEN "\033[32m"
@@ -26,6 +28,9 @@ typedef struct
 
 extern int commandCount;
 extern Command commandArr[10];
+
+extern int historyCount;
+extern char historyArr[MAX_CMD_LENGTH][HCOMMANDS_TO_STORE];
 
 // Current absolute path
 extern char currentPath[MAX_PATH_SIZE];

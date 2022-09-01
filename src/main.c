@@ -3,6 +3,7 @@
 #include "core/execute.h"
 #include "core/parse.h"
 #include "core/prompt.h"
+#include "core/history.h"
 #include "logger.h"
 #include "utils.h"
 
@@ -18,6 +19,8 @@ long long lastCommandTime;
 
 int main (int argc, char *argv[])
 {
+    loadHistory("history.txt");
+
     getWorkingDir();
     strcpy(home, currentPath);
 
@@ -33,7 +36,9 @@ int main (int argc, char *argv[])
             LogPError("Error while reading stdin");
             return -1;
         }
+        recordInHistory(cmd);
         parse(cmd);
+        saveHistory("history.txt");
     }
     return 0;
 }
