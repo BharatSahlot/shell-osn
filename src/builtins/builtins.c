@@ -13,4 +13,7 @@ void useBuiltins()
 
     commandArr[commandCount].cmd = "echo";
     commandArr[commandCount++].func = echo;
+
+    commandArr[commandCount].cmd = "pinfo";
+    commandArr[commandCount++].func = pinfo;
 }
