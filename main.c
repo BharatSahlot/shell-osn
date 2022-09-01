@@ -107,7 +107,6 @@ int main (int argc, char *argv[])
     while(!shouldExit)
     {
         printf("\033[90m<%s:\033[1;33m%s\033[90m> \033[0m", prompt, path);
-        if(shouldExit) break;
         if(fgets(cmd, 249, stdin) == NULL)
         {
             if(errno == EINTR)

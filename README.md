@@ -13,6 +13,10 @@ Commands can be chained with `;` or `&`. `;` will run the previous command in fo
 - **pwd:** prints the current working directory. Takes no arguements.
 - **ls**: `-a, -l, <path(s)>`
 
+#### Signal Handling
+
+- Todo: terminating inbuilt commands when recieve a singal
+
 #### More info
 
 ##### cd : change directory
