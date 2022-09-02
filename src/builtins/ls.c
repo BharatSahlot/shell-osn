@@ -105,7 +105,7 @@ void printfItemColor(const char* item, const struct stat* st)
 {
     if(S_ISDIR(st->st_mode)) printf(BOLD BLUE "%s" RESET, item);
     else if(S_ISLNK(st->st_mode)) printf(BOLD CYAN "%s" RESET, item);
-    else if(st->st_mode & S_IXUSR) printf(BOLD CYAN "%s" RESET, item);
+    else if(st->st_mode & S_IXUSR) printf(BOLD GREEN "%s" RESET, item);
     else printf("%s", item);
 }
 
@@ -146,7 +146,7 @@ int getItemLine(const char* path, char* line)
     }
     if(*ptr == '/') ++ptr;
 
-    if((st.st_mode & S_IFMT) == S_IFLNK)
+    if(S_ISLNK(st.st_mode))
     {
         char buf[50];
         err = readlink(path, buf, 50);
@@ -155,7 +155,7 @@ int getItemLine(const char* path, char* line)
             LogPError("ls");
             return -1;
         }
-        sprintf(line + n, BOLD GREEN "%s" RESET " -> " BOLD BLUE "%s" RESET, ptr, buf);
+        sprintf(line + n, BOLD CYAN "%s" RESET " -> " BOLD BLUE "%s" RESET, ptr, buf);
         return st.st_blocks;
     }
     if(S_ISDIR(st.st_mode)) n += sprintf(line + n, BOLD BLUE "%s" RESET, ptr);
@@ -239,9 +239,6 @@ int lsItem(const char* path, int displayHiddenFiles, int displayExtraInfo)
             if(*ptr == '/') ++ptr;
 
             printfItemColor(ptr, &st);
-            // if(S_ISDIR(st.st_mode)) printf(BOLD BLUE "%s" RESET, ptr);
-            // else if(st.st_mode & S_IXUSR) printf(BOLD CYAN "%s" RESET, ptr);
-            // else printf("%s", ptr);
             printf("\n");
         }
     }
