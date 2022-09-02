@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #define MAX_ITEMS_IN_DIR 1000
 #define MAX_ITEM_LENGTH 50
@@ -100,11 +101,19 @@ int genPermString(mode_t st_mode, char* out)
     return 10;
 }
 
+void printfItemColor(const char* item, const struct stat* st)
+{
+    if(S_ISDIR(st->st_mode)) printf(BOLD BLUE "%s" RESET, item);
+    else if(S_ISLNK(st->st_mode)) printf(BOLD CYAN "%s" RESET, item);
+    else if(st->st_mode & S_IXUSR) printf(BOLD CYAN "%s" RESET, item);
+    else printf("%s", item);
+}
+
 // on success returns blocks occupied by the item
 int getItemLine(const char* path, char* line)
 {
     struct stat st;
-    int err = stat(path, &st);
+    int err = lstat(path, &st);
     if(err == -1)
     {
         LogPError("ls");
@@ -137,8 +146,20 @@ int getItemLine(const char* path, char* line)
     }
     if(*ptr == '/') ++ptr;
 
-    if(S_ISDIR(st.st_mode)) n += sprintf(line + n, BLUE "%s" RESET, ptr);
-    else if(st.st_mode & S_IXUSR) n += sprintf(line + n, GREEN "%s" RESET, ptr);
+    if((st.st_mode & S_IFMT) == S_IFLNK)
+    {
+        char buf[50];
+        err = readlink(path, buf, 50);
+        if(err == -1)
+        {
+            LogPError("ls");
+            return -1;
+        }
+        sprintf(line + n, BOLD GREEN "%s" RESET " -> " BOLD BLUE "%s" RESET, ptr, buf);
+        return st.st_blocks;
+    }
+    if(S_ISDIR(st.st_mode)) n += sprintf(line + n, BOLD BLUE "%s" RESET, ptr);
+    else if(st.st_mode & S_IXUSR) n += sprintf(line + n, BOLD GREEN "%s" RESET, ptr);
     else n += sprintf(line + n, "%s", ptr);
     return st.st_blocks;
 }
@@ -146,7 +167,7 @@ int getItemLine(const char* path, char* line)
 int lsItem(const char* path, int displayHiddenFiles, int displayExtraInfo)
 {
     struct stat st;
-    int err = stat(path, &st);
+    int err = lstat(path, &st);
     if(err == -1)
     {
         LogPError("ls");
@@ -170,16 +191,14 @@ int lsItem(const char* path, int displayHiddenFiles, int displayExtraInfo)
                 }
                 if(*ptr == '/') ++ptr;
 
-                err = stat(itemsBuffer[i], &st);
+                err = lstat(itemsBuffer[i], &st);
                 if(err == -1)
                 {
                     LogPError("ls");
                     continue;
                 }
 
-                if(S_ISDIR(st.st_mode)) printf(BLUE "%s" RESET, ptr);
-                else if(st.st_mode & S_IXUSR) printf(GREEN "%s" RESET, ptr);
-                else printf("%s", ptr);
+                printfItemColor(ptr, &st);
                 printf("\n");
             }
             return 0;
@@ -218,9 +237,11 @@ int lsItem(const char* path, int displayHiddenFiles, int displayExtraInfo)
                 --ptr;
             }
             if(*ptr == '/') ++ptr;
-            if(S_ISDIR(st.st_mode)) printf(BLUE "%s" RESET, ptr);
-            else if(st.st_mode & S_IXUSR) printf(GREEN "%s" RESET, ptr);
-            else printf("%s", ptr);
+
+            printfItemColor(ptr, &st);
+            // if(S_ISDIR(st.st_mode)) printf(BOLD BLUE "%s" RESET, ptr);
+            // else if(st.st_mode & S_IXUSR) printf(BOLD CYAN "%s" RESET, ptr);
+            // else printf("%s", ptr);
             printf("\n");
         }
     }
