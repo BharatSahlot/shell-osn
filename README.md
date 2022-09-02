@@ -14,6 +14,7 @@ Commands can be chained with `;` or `&`. `;` will run the previous command in fo
 - **ls**: `-a, -l, <path(s)>`
 - **pinfo**: `<optional-pid>`
 - **history**: prints the last 10 commands
+- **discover**: `<target-dir> -d -f <filter>` Search for files/directories recursively in the given directory
 
 #### Signal Handling
 
@@ -41,3 +42,11 @@ Gives information like status and virtual memory size for the current process or
 ##### history : command history
 
 Records commands in a file and saved across sessions. Currently, the values of how many commands to store and display are fixed.
+
+##### discover : find files
+
+- Flags: `d, f`
+    - `d`: search for directories
+    - `f`: search for files
+
+Lists all files/folders(depending on flags) matching the filter, in the given target directory. For now `<filter>` just accepts normal strings.
