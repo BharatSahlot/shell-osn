@@ -36,21 +36,18 @@ void parse(char *cmd)
         if(cmd[i] == '&')
         {
             cmd[i] = '\0';
-            // printf("bg: %s\n", st);
             parseArgs(st);
             execute(1, argsBuf[0], argc, argsBuf);
             st = cmd + i + 1;
         } else if(cmd[i] == ';')
         {
             cmd[i] = '\0';
-            // printf("fg: %s\n", st);
-            // ExecuteCommand(st);
             parseArgs(st);
             execute(0, argsBuf[0], argc, argsBuf);
             st = cmd + i + 1;
         }
     }
-    if(st < cmd + n)
+    if(st < cmd + n - 1)
     {
         parseArgs(st);
         execute(0, argsBuf[0], argc, argsBuf);

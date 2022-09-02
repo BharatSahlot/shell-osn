@@ -15,7 +15,7 @@ Command commandArr[10];
 char currentPath[MAX_PATH_SIZE];
 char home[MAX_PATH_SIZE];
 int lastCommandStatus;
-long long lastCommandTime;
+int lastCommandTime;
 
 const char* historyFile = "/tmp/batak-history.txt";
 
