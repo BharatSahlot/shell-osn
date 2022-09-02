@@ -19,6 +19,10 @@ int cmp(const void* _a, const void* _b)
 {
     const char* a = (const char *)_a;
     const char* b = (const char *)_b;
+
+    if(*a == '.') a++;
+    if(*b == '.') b++;
+
     while(*a != '\0' && *b != '\0')
     {
         char ac = *a, bc = *b;
