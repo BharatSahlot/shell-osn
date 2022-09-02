@@ -27,11 +27,14 @@ void render_prompt()
         }
     }
 
-    if(lastCommandStatus == 0)
+    const char* prefixColor = lastCommandStatus == 0 ? GRAY : RED;
+    const char* dirColor = YELLOW;
+    if(lastCommandTime > 0)
     {
-        printf(GRAY "<%s@%s:" YELLOW "%s" GRAY "> " RESET, username, sysname, addTildaToPath(currentPath));
-    } else if(lastCommandStatus == -1)
+        printf("%s<%s@%s:%s%s%s took %ds%s>%s", prefixColor, username, sysname, dirColor, addTildaToPath(currentPath), CYAN, lastCommandTime, prefixColor, RESET);
+        lastCommandTime = 0;
+    } else
     {
-        printf(RED "<%s@%s:" YELLOW "%s" RED "> " RESET, username, sysname, addTildaToPath(currentPath));
+        printf("%s<%s@%s:%s%s%s>%s", prefixColor, username, sysname, dirColor, addTildaToPath(currentPath), prefixColor, RESET);
     }
 }

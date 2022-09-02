@@ -42,7 +42,7 @@ extern char home[MAX_PATH_SIZE];
 // Status code of last command/process executed
 extern int lastCommandStatus;
 
-// Time taken by last command in milliseconds
-extern long long lastCommandTime;
+// Time taken by last command in seconds
+extern int lastCommandTime;
 
 #endif

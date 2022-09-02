@@ -16,6 +16,7 @@ const char** parseArgs(char* cmd)
         argsBuf[argc++] = p;
         p = strtok(NULL, " \t\n");
     }
+    argsBuf[argc] = NULL; // null terminate args list, usefull for sys calls like execve
     return argsBuf;
 }
 
