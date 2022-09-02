@@ -103,11 +103,16 @@ int genPermString(mode_t st_mode, char* out)
     return 10;
 }
 
+int isExecutable(const struct stat* st)
+{
+    return (st->st_mode & (S_IXUSR | S_IXGRP | S_IXOTH));
+}
+
 void printfItemColor(const char* item, const struct stat* st)
 {
     if(S_ISDIR(st->st_mode)) printf(BOLD BLUE "%s" RESET, item);
     else if(S_ISLNK(st->st_mode)) printf(BOLD CYAN "%s" RESET, item);
-    else if(st->st_mode & S_IXUSR) printf(BOLD GREEN "%s" RESET, item);
+    else if(isExecutable(st)) printf(BOLD GREEN "%s" RESET, item);
     else printf("%s", item);
 }
 
@@ -161,7 +166,7 @@ int getItemLine(const char* path, char* line)
         return st.st_blocks;
     }
     if(S_ISDIR(st.st_mode)) n += sprintf(line + n, BOLD BLUE "%s" RESET, ptr);
-    else if(st.st_mode & S_IXUSR) n += sprintf(line + n, BOLD GREEN "%s" RESET, ptr);
+    else if(isExecutable(&st)) n += sprintf(line + n, BOLD GREEN "%s" RESET, ptr);
     else n += sprintf(line + n, "%s", ptr);
     return st.st_blocks;
 }
