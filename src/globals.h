@@ -31,7 +31,7 @@ extern int commandCount;
 extern Command commandArr[10];
 
 extern int historyCount;
-extern char historyArr[MAX_CMD_LENGTH][HCOMMANDS_TO_STORE];
+extern char historyArr[HCOMMANDS_TO_STORE][MAX_CMD_LENGTH];
 
 // Current absolute path
 extern char currentPath[MAX_PATH_SIZE];

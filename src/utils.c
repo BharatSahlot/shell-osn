@@ -70,3 +70,12 @@ const char* makePathAbsolute(const char* path)
     }
     return tempPathBuf;
 }
+
+// joins two paths which dont contain ., .. and ~
+void joinPaths(char *p1, const char *p2)
+{
+    int pn = strlen(p1);
+    if(p1[pn - 1] == '/') pn--;
+    if(p2[0] != '/') p1[pn++] = '/';
+    strcpy(p1 + pn, p2);
+}

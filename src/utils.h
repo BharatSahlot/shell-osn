@@ -19,4 +19,7 @@ const char* addTildaToPath(const char* path);
 // makes the path absolute
 const char* makePathAbsolute(const char* path);
 
+// joins two paths which dont contain ., .. and ~
+void joinPaths(char* p1, const char* p2);
+
 #endif

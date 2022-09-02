@@ -6,7 +6,7 @@
 #include <string.h>
 
 int historyCount = 0;
-char historyArr[MAX_CMD_LENGTH][HCOMMANDS_TO_STORE];
+char historyArr[HCOMMANDS_TO_STORE][MAX_CMD_LENGTH];
 char tempBuf[MAX_CMD_LENGTH];
 
 int loadHistory(const char *saveFile)

@@ -14,15 +14,15 @@
 #define MAX_ITEM_LENGTH 50
 
 int items = 0;
-char itemsBuffer[MAX_ITEM_LENGTH][MAX_ITEMS_IN_DIR];
+char itemsBuffer[MAX_ITEMS_IN_DIR][MAX_ITEM_LENGTH];
 
 int cmp(const void* _a, const void* _b)
 {
     const char* a = (const char *)_a;
     const char* b = (const char *)_b;
 
-    if(*a == '.') a++;
-    if(*b == '.') b++;
+    while(*a == '.') a++;
+    while(*b == '.') b++;
 
     while(*a != '\0' && *b != '\0')
     {
@@ -59,6 +59,7 @@ int readItemsInDir(const char* path, int includeHidden)
     if(errno != 0)
     {
         LogPError("ls");
+        closedir(dir);
         return -1;
     }
     char temp[MAX_ITEM_LENGTH];
@@ -72,6 +73,7 @@ int readItemsInDir(const char* path, int includeHidden)
         itemsBuffer[i][pn] = '/';
         strcpy(itemsBuffer[i] + pn + 1, temp);
     }
+    closedir(dir);
     return 0;
 }
 
@@ -207,7 +209,7 @@ int lsItem(const char* path, int displayHiddenFiles, int displayExtraInfo)
         int totalBlocks = 0;
 
         int line = 0;
-        char lines[250][MAX_ITEMS_IN_DIR];
+        char lines[MAX_ITEMS_IN_DIR][250];
         for(int i = 0; i < items; i++)
         {
             err = getItemLine(itemsBuffer[i], lines[line]);
@@ -257,11 +259,16 @@ int ls(int argc, const char **argv)
             count++;
             continue;
         }
-        const char* ptr = argv[i];
+        const char* ptr = argv[i] + 1;
         while(*ptr != '\0')
         {
             if(*ptr == 'a') listHiddenItems = 1;
-            if(*ptr == 'l') listExtraInfo = 1;
+            else if(*ptr == 'l') listExtraInfo = 1;
+            else
+            {
+                Log(LOGL_ERROR, "ls: invalid flag %c specified\n", *ptr);
+                return -1;
+            }
             ptr++;
         }
     }
@@ -272,15 +279,49 @@ int ls(int argc, const char **argv)
         return 0;
     }
 
+    int c = 0; // temp index
+    char temp[MAX_ARGS][MAX_ITEM_LENGTH];
+    struct stat st;
     for(int i = 1; i < argc; i++)
     {
         if(argv[i][0] == '-') continue;
 
-        if(count > 1) printf("%s:\n", argv[i]);
+        if(stat(argv[i], &st) == -1)
+        {
+            LogPError("ls");
+            continue;
+        }
+        if(S_ISDIR(st.st_mode)) continue;
+        strcpy(temp[c++], argv[i]);
+    }
 
-        int err = lsItem(argv[i], listHiddenItems, listExtraInfo);
-        if(err == -1) return -1;
-        if(count == 0) break;
+    int filesPrinted = 0;
+    qsort(temp, c, MAX_ITEM_LENGTH, cmp);
+    for(int i = 0; i < c; i++)
+    {
+        filesPrinted = 1;
+        lsItem(temp[i], listHiddenItems, listExtraInfo);
+    }
+
+    c = 0;
+    for(int i = 1; i < argc; i++)
+    {
+        if(argv[i][0] == '-') continue;
+
+        if(stat(argv[i], &st) == -1)
+        {
+            LogPError("ls");
+            continue;
+        }
+        if(!S_ISDIR(st.st_mode)) continue;
+        strcpy(temp[c++], argv[i]);
+    }
+    qsort(temp, c, sizeof(temp[0]), cmp);
+    for(int i = 0; i < c; i++)
+    {
+        if(i || filesPrinted) printf("\n");
+        if(count > 1) printf("%s:\n", temp[i]);
+        lsItem(temp[i], listHiddenItems, listExtraInfo);
     }
     return 0;
 }
