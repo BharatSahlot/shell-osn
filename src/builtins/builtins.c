@@ -16,4 +16,7 @@ void useBuiltins()
 
     commandArr[commandCount].cmd = "pinfo";
     commandArr[commandCount++].func = pinfo;
+
+    commandArr[commandCount].cmd = "history";
+    commandArr[commandCount++].func = history;
 }

@@ -8,7 +8,9 @@ int history(int argc, const char* argv[])
     {
         Log(LOGL_WARN, "history: too many arguements\n");
     }
-    for(int i = 0; i < historyCount; i++)
+    int i = historyCount - HCOMMANDS_TO_DISPLAY;
+    if(i < 0) i = 0;
+    for(; i < historyCount; i++)
     {
         printf("%s\n", historyArr[i]);
     }

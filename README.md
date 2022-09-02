@@ -13,6 +13,7 @@ Commands can be chained with `;` or `&`. `;` will run the previous command in fo
 - **pwd:** prints the current working directory. Takes no arguements.
 - **ls**: `-a, -l, <path(s)>`
 - **pinfo**: `<optional-pid>`
+- **history**: prints the last 10 commands
 
 #### Signal Handling
 
@@ -36,3 +37,7 @@ Accepts paths to both directories and files. For directories it will list all th
 ##### pinfo : process information
 
 Gives information like status and virtual memory size for the current process or process with the given PID.
+
+##### history : command history
+
+Records commands in a file and saved across sessions. Currently, the values of how many commands to store and display are fixed.

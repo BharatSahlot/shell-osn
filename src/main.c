@@ -17,9 +17,11 @@ char home[MAX_PATH_SIZE];
 int lastCommandStatus;
 long long lastCommandTime;
 
+const char* historyFile = "/tmp/batak-history.txt";
+
 int main (int argc, char *argv[])
 {
-    loadHistory("history.txt");
+    loadHistory(historyFile);
 
     getWorkingDir();
     strcpy(home, currentPath);
@@ -36,9 +38,10 @@ int main (int argc, char *argv[])
             LogPError("Error while reading stdin");
             return -1;
         }
+        loadHistory(historyFile);
         recordInHistory(cmd);
         parse(cmd);
-        saveHistory("history.txt");
+        saveHistory(historyFile);
     }
     return 0;
 }

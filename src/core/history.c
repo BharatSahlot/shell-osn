@@ -1,18 +1,20 @@
 #include "history.h"
 
 #include <fcntl.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 
 int historyCount = 0;
 char historyArr[MAX_CMD_LENGTH][HCOMMANDS_TO_STORE];
+char tempBuf[MAX_CMD_LENGTH];
 
 int loadHistory(const char *saveFile)
 {
     int fd = open(saveFile, O_RDONLY);
     if(fd == -1)
     {
-        LogPError("history");
+        LogPError("history-load");
         return -1;
     }
 
@@ -22,6 +24,7 @@ int loadHistory(const char *saveFile)
     {
         if(ch == '\n')
         {
+            if(chIndx == 0) continue;
             historyArr[curCmd][chIndx] = '\0';
             curCmd++;
             chIndx = 0;
@@ -29,14 +32,37 @@ int loadHistory(const char *saveFile)
         }
         historyArr[curCmd][chIndx++] = ch;
     }
+    historyCount = curCmd;
     close(fd);
     return 0;
 }
 
-int recordInHistory(const char *cmd)
+int shouldRecord(const char* cmd)
 {
-    // no need to save if exact duplicate of previous command
-    if(strcmp(cmd, historyArr[historyCount - 1]) == 0) return 0;
+    if(historyCount == 0) return 1;
+
+    strcpy(tempBuf, cmd);
+    char buf[MAX_CMD_LENGTH];
+
+    char* bptr = buf;
+    char* ptr = strtok(tempBuf, " \t\n");
+    while(ptr != NULL)
+    {
+        strcpy(bptr, ptr);
+        bptr += strlen(ptr);
+        ptr = strtok(NULL, " \t\n");
+        if(ptr != NULL)
+        {
+            *bptr = ' ';
+            bptr++;
+        }
+    }
+    return strcmp(historyArr[historyCount - 1], buf) != 0;
+}
+
+int recordInHistory(const char* cmd)
+{
+    if(!shouldRecord(cmd)) return 0;
 
     if(historyCount + 1 >= HCOMMANDS_TO_STORE)
     {
@@ -46,17 +72,29 @@ int recordInHistory(const char *cmd)
         }
         historyCount--;
     }
-    strcpy(historyArr[historyCount++], cmd);
+    historyCount++;
 
+    strcpy(tempBuf, cmd);
+    char* historyPtr = historyArr[historyCount - 1];
+    char* ptr = strtok(tempBuf, " \t\n");
+    int first = 1;
+    while(ptr != NULL)
+    {
+        if(!first) historyPtr += sprintf(historyPtr, " ");
+        historyPtr += sprintf(historyPtr, "%s", ptr);
+        first = 0;
+
+        ptr = strtok(NULL, " \t\n");
+    }
     return 0;
 }
 
 int saveHistory(const char *saveFile)
 {
-    int fd = open(saveFile, O_WRONLY | O_TRUNC | O_CREAT);
+    int fd = open(saveFile, O_WRONLY | O_TRUNC | O_CREAT, S_IWUSR | S_IRUSR);
     if(fd == -1)
     {
-        LogPError("history");
+        LogPError("history-save");
         return -1;
     }
     for(int i = 0; i < historyCount; i++)
@@ -64,15 +102,18 @@ int saveHistory(const char *saveFile)
         int err = write(fd, historyArr[i], strlen(historyArr[i]));
         if(err == -1)
         {
-            LogPError("history");
+            close(fd);
+            LogPError("history-save");
             return -1;
         }
+
         if(historyArr[i][strlen(historyArr[i]) - 1] != '\n')
         {
             err = write(fd, "\n", 1);
             if(err == -1)
             {
-                LogPError("history");
+                close(fd);
+                LogPError("history-save");
                 return -1;
             }
         }

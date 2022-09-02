@@ -39,5 +39,6 @@ void LogPError(const char *format, ...)
     va_start(args, format);
     vsprintf(errBuf, format, args);
     perror(errBuf);
+    fprintf(stderr, "\033[0m");
     va_end(args);
 }
