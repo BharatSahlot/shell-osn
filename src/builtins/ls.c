@@ -291,7 +291,7 @@ int ls(int argc, const char **argv)
     {
         if(argv[i][0] == '-') continue;
 
-        if(stat(argv[i], &st) == -1)
+        if(lstat(argv[i], &st) == -1)
         {
             LogPError("ls");
             continue;
@@ -301,7 +301,7 @@ int ls(int argc, const char **argv)
     }
 
     int filesPrinted = 0;
-    qsort(temp, c, MAX_ITEM_LENGTH, cmp);
+    qsort(temp, c, sizeof(temp[0]), cmp);
     for(int i = 0; i < c; i++)
     {
         filesPrinted = 1;
@@ -313,7 +313,7 @@ int ls(int argc, const char **argv)
     {
         if(argv[i][0] == '-') continue;
 
-        if(stat(argv[i], &st) == -1)
+        if(lstat(argv[i], &st) == -1)
         {
             LogPError("ls");
             continue;
