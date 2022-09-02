@@ -9,6 +9,30 @@
 #include <string.h>
 #include <sys/stat.h>
 
+char curSearchPath[MAX_PATH_SIZE];
+char curSearchAbsolutePath[MAX_PATH_SIZE];
+
+void printFilteredPath(const char* path, const char* target)
+{
+    if(target != NULL)
+    {
+        int n1 = strlen(path), n2 = strlen(target);
+        if(n1 < n2) return;
+
+        for(int i = n1 - 1, j = n2 - 2; i >= 0 && j > 0; --i, --j)
+        {
+            if(path[i] != target[j]) return;
+        }
+    }
+    static char temp[MAX_PATH_SIZE];
+    strcpy(temp, curSearchPath);
+    joinPaths(temp, path + strlen(curSearchAbsolutePath) + 1);
+
+    int n = strlen(temp);
+    if(temp[n - 1] == '/') temp[n - 1] = '\0';
+    printf("%s\n", temp);
+}
+
 // absolute path of the directory
 int discoverDir(const char* path, const char* target, int shouldSearchFiles, int shouldSearchDirectory)
 {
@@ -18,6 +42,11 @@ int discoverDir(const char* path, const char* target, int shouldSearchFiles, int
         LogPError("discover");
         return -1;
     }
+    
+    if(shouldSearchDirectory)
+    {
+        printFilteredPath(path, target);
+    }
 
     struct stat st;
 
@@ -26,8 +55,7 @@ int discoverDir(const char* path, const char* target, int shouldSearchFiles, int
     char tempPath[MAX_PATH_SIZE];
     while(item != NULL)
     {
-        // TODO: fix this
-        if(item->d_name[0] == '.')
+        if(strcmp(item->d_name, "..") == 0 || strcmp(item->d_name, ".") == 0)
         {
             item = readdir(dir);
             continue;
@@ -36,26 +64,33 @@ int discoverDir(const char* path, const char* target, int shouldSearchFiles, int
         strcpy(tempPath, path);
         joinPaths(tempPath, item->d_name);
 
-        // will follow symbolic links
-        if(stat(tempPath, &st) == -1)
+        const char* abs = makePathAbsolute(tempPath);
+        if(abs == NULL)
         {
+            LogPError("discover %s", tempPath);
+            continue;
+        }
+        strcpy(tempPath, abs);
+
+        // dont follow symbolic links
+        if(lstat(tempPath, &st) == -1)
+        {
+            item = readdir(dir);
             LogPError("discover");
             continue;
         }
 
         if(S_ISDIR(st.st_mode))
         {
-            if(shouldSearchDirectory)
-            {
-                printf("%s\n", tempPath);
-            }
-            // recurse
             discoverDir(tempPath, target, shouldSearchFiles, shouldSearchDirectory);
-        } else 
+            errno = 0;
+        } else if(shouldSearchFiles)
         {
+            printFilteredPath(tempPath, target);
         }
         item = readdir(dir);
     }
+    free(item);
     closedir(dir);
     if(errno != 0)
     {
@@ -67,7 +102,8 @@ int discoverDir(const char* path, const char* target, int shouldSearchFiles, int
 
 int discover(int argc, const char *argv[])
 {
-    char searchDir[MAX_PATH_SIZE] = "\0";
+    int searchDirFound = 0;
+    char searchDir[MAX_PATH_SIZE] = ".";
     const char *target = NULL;
     int shouldSearchDirectory = 0, shouldSearchFiles = 0;
     for(int i = 1; i < argc; i++)
@@ -103,16 +139,18 @@ int discover(int argc, const char *argv[])
             target = argv[i];
         } else
         {
-            if(searchDir[0] != '\0')
+            if(searchDirFound)
             {
                 Log(LOGL_ERROR, "discover: two or more search dir specified\n");
                 return -1;
             }
+            searchDirFound = 1;
             strcpy(searchDir, argv[i]);
-            // searchDir = argv[i];
         }
     }
+    strcpy(curSearchPath, searchDir);
     strcpy(searchDir, makePathAbsolute(searchDir));
+    strcpy(curSearchAbsolutePath, searchDir);
     discoverDir(searchDir, target, !shouldSearchDirectory || shouldSearchFiles, !shouldSearchFiles || shouldSearchDirectory);
     return 0;
 }

@@ -3,6 +3,7 @@
 
 #include <pwd.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 
@@ -54,21 +55,25 @@ const char* addTildaToPath(const char* path)
 const char* makePathAbsolute(const char* path)
 {
     strcpy(tempPathBuf, path);
-    if(path[0] == '/') return tempPathBuf;
-    if(path[0] == '~')
-    {
-        int home_len = strlen(home);
-        strcpy(tempPathBuf, home);
-        tempPathBuf[home_len] = '/';
-        strcpy(tempPathBuf + home_len + 1, path + 1);
-    } else
-    {
-        int path_len = strlen(currentPath);
-        strcpy(tempPathBuf, currentPath);
-        tempPathBuf[path_len] = '/';
-        strcpy(tempPathBuf + path_len + 1, path);
-    }
-    return tempPathBuf;
+    const char* ptr = realpath(path, tempPathBuf);
+    if(ptr != NULL) errno = 0; // realpath uses readlink for checking links, which results in leftover errno values
+    return ptr;
+    // if(path[0] == '/') return tempPathBuf;
+    // if(path[0] == '~')
+    // {
+    //     int home_len = strlen(home);
+    //     strcpy(tempPathBuf, home);
+    //     tempPathBuf[home_len] = '/';
+    //     strcpy(tempPathBuf + home_len + 1, path + 1);
+    // } else
+    // {
+    //     realpath(path, tempPathBuf);
+    //     // int path_len = strlen(currentPath);
+    //     // strcpy(tempPathBuf, currentPath);
+    //     // tempPathBuf[path_len] = '/';
+    //     // strcpy(tempPathBuf + path_len + 1, path);
+    // }
+    // return tempPathBuf;
 }
 
 // joins two paths which dont contain ., .. and ~
