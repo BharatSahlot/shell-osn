@@ -7,6 +7,7 @@
 #include "logger.h"
 #include "utils.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
@@ -44,7 +45,6 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
     printf("\nProcess with pid = %d %s\n", info->si_pid, sta);
     render_prompt();
     fflush(stdout);
-    fflush(stdin);
 }
 
 int main (int argc, char *argv[])
