@@ -21,6 +21,8 @@ int cmp(const void* _a, const void* _b)
     const char* a = (const char *)_a;
     const char* b = (const char *)_b;
 
+
+    int n1 = strlen(a), n2 = strlen(b);
     while(*a == '.') a++;
     while(*b == '.') b++;
 
@@ -36,7 +38,7 @@ int cmp(const void* _a, const void* _b)
         if(tolower(ac) == tolower(bc)) return ac > bc ? -1 : 1;
         return tolower(ac) < tolower(bc) ? -1 : 1;
     }
-    if(*a == '\0' && *b == '\0') return 0;
+    if(*a == '\0' && *b == '\0') return n1 == n2 ? 0 : (n1 < n2 ? -1 : 1);
     return *a != '\0' ? 1 : -1;
 }
 
@@ -297,7 +299,7 @@ int ls(int argc, const char **argv)
             continue;
         }
         if(S_ISDIR(st.st_mode)) continue;
-        strcpy(temp[c++], makePathAbsolute(argv[i]));
+        strcpy(temp[c++], argv[i]);
     }
 
     int filesPrinted = 0;
@@ -305,6 +307,7 @@ int ls(int argc, const char **argv)
     for(int i = 0; i < c; i++)
     {
         filesPrinted = 1;
+        strcpy(temp[i], makePathAbsolute(temp[i]));
         lsItem(temp[i], listHiddenItems, listExtraInfo);
     }
 
@@ -319,13 +322,14 @@ int ls(int argc, const char **argv)
             continue;
         }
         if(!S_ISDIR(st.st_mode)) continue;
-        strcpy(temp[c++], makePathAbsolute(argv[i]));
+        strcpy(temp[c++], argv[i]);
     }
     qsort(temp, c, sizeof(temp[0]), cmp);
     for(int i = 0; i < c; i++)
     {
         if(i || filesPrinted) printf("\n");
         if(count > 1) printf("%s:\n", temp[i]);
+        strcpy(temp[i], makePathAbsolute(temp[i]));
         lsItem(temp[i], listHiddenItems, listExtraInfo);
     }
     return 0;
