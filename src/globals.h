@@ -39,6 +39,8 @@ extern char currentPath[MAX_PATH_SIZE];
 // HOME path, the path where the shell was executed in
 extern char home[MAX_PATH_SIZE];
 
+extern int bgProcessesRunning;
+
 // Status code of last command/process executed
 extern int lastCommandStatus;
 

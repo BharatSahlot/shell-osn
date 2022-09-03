@@ -45,7 +45,8 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
             lastCommandTime = e - s;
         } else
         {
-            printf("%d\n", pid);
+            bgProcessesRunning++;
+            printf("[%d] %d\n", bgProcessesRunning, pid);
         }
         return lastCommandStatus;
     }
