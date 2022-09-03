@@ -291,13 +291,13 @@ int ls(int argc, const char **argv)
     {
         if(argv[i][0] == '-') continue;
 
-        if(lstat(argv[i], &st) == -1)
+        if(lstat(makePathAbsolute(argv[i]), &st) == -1)
         {
             LogPError("ls");
             continue;
         }
         if(S_ISDIR(st.st_mode)) continue;
-        strcpy(temp[c++], argv[i]);
+        strcpy(temp[c++], makePathAbsolute(argv[i]));
     }
 
     int filesPrinted = 0;
@@ -313,13 +313,13 @@ int ls(int argc, const char **argv)
     {
         if(argv[i][0] == '-') continue;
 
-        if(lstat(argv[i], &st) == -1)
+        if(lstat(makePathAbsolute(argv[i]), &st) == -1)
         {
             LogPError("ls");
             continue;
         }
         if(!S_ISDIR(st.st_mode)) continue;
-        strcpy(temp[c++], argv[i]);
+        strcpy(temp[c++], makePathAbsolute(argv[i]));
     }
     qsort(temp, c, sizeof(temp[0]), cmp);
     for(int i = 0; i < c; i++)

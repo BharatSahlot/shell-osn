@@ -9,7 +9,7 @@
 
 #include <stdio.h>
 
-char tempPathBuf[MAX_PATH_SIZE];
+char tempPathBuf[MAX_PATH_SIZE], tempPathBuf2[MAX_PATH_SIZE];
 
 // returns username if successfull else NULL
 const char* getUsernameFromId(uid_t uid)
@@ -54,8 +54,11 @@ const char* addTildaToPath(const char* path)
 // makes the path absolute
 const char* makePathAbsolute(const char* path)
 {
-    strcpy(tempPathBuf, path);
-    const char* ptr = realpath(path, tempPathBuf);
+    if(path[0] == '~')
+    {
+        sprintf(tempPathBuf, "%s%s", home, path + 1);
+    } else strcpy(tempPathBuf, path);
+    const char* ptr = realpath(tempPathBuf, tempPathBuf2);
     if(ptr != NULL) errno = 0; // realpath uses readlink for checking links, which results in leftover errno values
     return ptr;
 }
