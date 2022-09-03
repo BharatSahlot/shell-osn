@@ -23,10 +23,9 @@ int pinfo(int argc, const char *argv[])
         LogPError("pinfo");
         return -1;
     }
-    close(fd);
-
     char buffer[100];
     int n = read(fd, buffer, 100);
+    close(fd);
 
     int id;
     char executablePath[100], state;
