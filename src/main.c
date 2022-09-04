@@ -22,21 +22,23 @@ char home[MAX_PATH_SIZE];
 int lastCommandStatus;
 int lastCommandTime;
 int bgProcessesRunning;
+int shouldExitShell;
 
 void zombie_handler(int sig, siginfo_t* info, void* ucontext)
 {
     int status = 0;
-    pid_t p = waitpid(info->si_pid, &status, WUNTRACED | WCONTINUED);
+    pid_t p = waitpid(info->si_pid, &status, WNOHANG | WUNTRACED | WCONTINUED);
     if(p == -1)
     {
         LogPError("zombie");
         return;
     }
     char name[50];
+    lastCommandStatus = 0;
     const char* sta = "exited normally";
     switch (info->si_code) {
-        case CLD_KILLED: sta = "was killed"; break;
-        case CLD_DUMPED: sta = "exited abnormally"; break;
+        case CLD_KILLED: lastCommandStatus = -1; sta = "was killed"; break;
+        case CLD_DUMPED: lastCommandStatus = -1; sta = "exited abnormally"; break;
         case CLD_STOPPED: sta = "has stopped"; break;
         case CLD_CONTINUED: sta = "has continued"; break;
     }
@@ -58,6 +60,13 @@ int main (int argc, char *argv[])
         return -1;
     }
 
+    // ctrl-c should only exit child process not shell
+    if(signal(SIGINT, SIG_IGN) == SIG_ERR)
+    {
+        LogPError("signal");
+        return -1;
+    }
+
     if(initHistory() == -1) return -1;
 
     getWorkingDir();
@@ -66,7 +75,7 @@ int main (int argc, char *argv[])
     useBuiltins();
 
     char cmd[MAX_CMD_LENGTH];
-    while(1)
+    while(!shouldExitShell)
     {
         render_prompt();
 

@@ -43,6 +43,11 @@ void parse(char *cmd)
         {
             cmd[i] = '\0';
             parseArgs(st);
+            if(strcmp(argsBuf[0], "exit") == 0)
+            {
+                shouldExitShell = 1;
+                return;
+            }
             execute(0, argsBuf[0], argc, argsBuf);
             st = cmd + i + 1;
         }
@@ -50,6 +55,11 @@ void parse(char *cmd)
     if(st < cmd + n - 1)
     {
         parseArgs(st);
+        if(strcmp(argsBuf[0], "exit") == 0)
+        {
+            shouldExitShell = 1;
+            return;
+        }
         execute(0, argsBuf[0], argc, argsBuf);
         // ExecuteCommand(st);
         // printf("fg: %s\n", st);

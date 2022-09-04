@@ -1,6 +1,7 @@
 #include "execute.h"
 #include "../globals.h"
 
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -26,6 +27,7 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
     pid_t pid = fork();
     if(pid == 0)
     {
+        signal(SIGINT, SIG_DFL);
         if(execve(cmd, (char* const*)argv, NULL) == -1)
         {
             LogPError("%s", cmd);

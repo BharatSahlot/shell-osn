@@ -41,6 +41,8 @@ extern char home[MAX_PATH_SIZE];
 
 extern int bgProcessesRunning;
 
+extern int shouldExitShell;
+
 // Status code of last command/process executed
 extern int lastCommandStatus;
 
