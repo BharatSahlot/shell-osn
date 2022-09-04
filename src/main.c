@@ -27,10 +27,11 @@ int shouldExitShell;
 void zombie_handler(int sig, siginfo_t* info, void* ucontext)
 {
     int status = 0;
-    pid_t p = waitpid(info->si_pid, &status, WNOHANG | WUNTRACED | WCONTINUED);
+    pid_t p = waitpid(info->si_pid, &status, WUNTRACED | WCONTINUED);
     if(p == -1)
     {
-        LogPError("zombie");
+        // dont log error when foreground process exits
+        if(errno != ECHILD) LogPError("zombie");
         return;
     }
     char name[50];
