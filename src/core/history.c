@@ -1,17 +1,45 @@
 #include "history.h"
 
 #include <fcntl.h>
+#include <pwd.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/stat.h>
 
 int historyCount = 0;
 char historyArr[HCOMMANDS_TO_STORE][MAX_CMD_LENGTH];
 char tempBuf[MAX_CMD_LENGTH];
 
-int loadHistory(const char *saveFile)
+const char* historyFile;
+
+int initHistory()
 {
-    int fd = open(saveFile, O_RDONLY);
+    static char file[MAX_PATH_SIZE];
+    struct passwd* pw = getpwuid(geteuid());
+    if(pw == NULL)
+    {
+        LogPError("history-init");
+        return -1;
+    }
+    sprintf(file, "%s/.batak_history", pw->pw_dir);
+    historyFile = file;
+
+    struct stat st;
+    if(stat(historyFile, &st) == -1)
+    {
+        if(creat(historyFile, S_IWUSR | S_IRUSR) == -1)
+        {
+            LogPError("history-init");
+            return -1;
+        }
+    }
+    return 0;
+}
+
+int loadHistory()
+{
+    int fd = open(historyFile, O_RDONLY);
     if(fd == -1)
     {
         LogPError("history-load");
@@ -89,9 +117,9 @@ int recordInHistory(const char* cmd)
     return 0;
 }
 
-int saveHistory(const char *saveFile)
+int saveHistory()
 {
-    int fd = open(saveFile, O_WRONLY | O_TRUNC | O_CREAT, S_IWUSR | S_IRUSR);
+    int fd = open(historyFile, O_CREAT | O_WRONLY | O_TRUNC, S_IWUSR | S_IRUSR);
     if(fd == -1)
     {
         LogPError("history-save");

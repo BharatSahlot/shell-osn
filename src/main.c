@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <wait.h>
 
@@ -21,8 +22,6 @@ char home[MAX_PATH_SIZE];
 int lastCommandStatus;
 int lastCommandTime;
 int bgProcessesRunning;
-
-const char* historyFile = "/tmp/batak-history.txt";
 
 void zombie_handler(int sig, siginfo_t* info, void* ucontext)
 {
@@ -59,7 +58,7 @@ int main (int argc, char *argv[])
         return -1;
     }
 
-    loadHistory(historyFile);
+    if(initHistory() == -1) return -1;
 
     getWorkingDir();
     strcpy(home, currentPath);
@@ -76,10 +75,10 @@ int main (int argc, char *argv[])
             LogPError("Error while reading stdin");
             return -1;
         }
-        loadHistory(historyFile);
+        loadHistory();
         recordInHistory(cmd);
         parse(cmd);
-        saveHistory(historyFile);
+        saveHistory();
     }
     return 0;
 }

@@ -3,13 +3,15 @@
 
 #include "../globals.h"
 
+int initHistory();
+
 // loads history from save file
-int loadHistory(const char* saveFile);
+int loadHistory();
 
 // records command in history but doesn't save in file
 int recordInHistory(const char* cmd);
 
 // save recorded history in file
-int saveHistory(const char* saveFile);
+int saveHistory();
 
 #endif
