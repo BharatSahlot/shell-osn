@@ -8,6 +8,7 @@ Commands can be chained with `;` or `&`. `;` will run the previous command in fo
 
 #### Inbuilt Commands
 
+- **exit**: exits the shell
 - **echo:** `<space-tab-separated-strings>` prints the strings as it as, while ignring the spacing.
 - **cd:** `-, ., .., <relative-path>, <absolute-path>`
 - **pwd:** prints the current working directory. Takes no arguements.
@@ -15,10 +16,6 @@ Commands can be chained with `;` or `&`. `;` will run the previous command in fo
 - **pinfo**: `<optional-pid>`
 - **history**: prints the last 10 commands
 - **discover**: `<target-dir> -d -f <filter>` Search for files/directories recursively in the given directory
-
-#### Signal Handling
-
-- Todo: terminating inbuilt commands when recieve a singal
 
 #### More info
 

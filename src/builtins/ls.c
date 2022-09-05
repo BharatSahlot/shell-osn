@@ -12,6 +12,7 @@
 
 #define MAX_ITEMS_IN_DIR 4096
 #define MAX_ITEM_LENGTH 100
+#define MAX_LINE_LENGTH 1000
 
 int items = 0;
 char itemsBuffer[MAX_ITEMS_IN_DIR][MAX_ITEM_LENGTH];
@@ -20,7 +21,6 @@ int cmp(const void* _a, const void* _b)
 {
     const char* a = (const char *)_a;
     const char* b = (const char *)_b;
-
 
     int n1 = strlen(a), n2 = strlen(b);
     while(*a == '.') a++;
@@ -47,6 +47,11 @@ int readItemsInDir(const char* path, int includeHidden)
 {
     items = 0;
     DIR* dir = opendir(path);
+    if(dir == NULL)
+    {
+        LogPError("ls");
+        return -1;
+    }
     
     errno = 0;
     struct dirent* item = readdir(dir);
@@ -157,8 +162,8 @@ int getItemLine(const char* path, char* line)
 
     if(S_ISLNK(st.st_mode))
     {
-        char buf[50];
-        err = readlink(path, buf, 50);
+        char buf[MAX_PATH_SIZE];
+        err = readlink(path, buf, MAX_PATH_SIZE);
         if(err == -1)
         {
             LogPError("ls");
@@ -216,7 +221,7 @@ int lsItem(const char* path, int displayHiddenFiles, int displayExtraInfo)
         int totalBlocks = 0;
 
         int line = 0;
-        char lines[MAX_ITEMS_IN_DIR][250];
+        static char lines[MAX_ITEMS_IN_DIR][MAX_LINE_LENGTH];
         for(int i = 0; i < items; i++)
         {
             err = getItemLine(itemsBuffer[i], lines[line]);
@@ -234,7 +239,7 @@ int lsItem(const char* path, int displayHiddenFiles, int displayExtraInfo)
     {
         if(displayExtraInfo)
         {
-            char line[250];
+            char line[MAX_LINE_LENGTH];
             getItemLine(path, line);
             printf("%s\n", line);
         } else

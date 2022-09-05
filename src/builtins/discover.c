@@ -68,6 +68,7 @@ int discoverDir(const char* path, const char* target, int shouldSearchFiles, int
         if(abs == NULL)
         {
             LogPError("discover %s", tempPath);
+            item = readdir(dir);
             continue;
         }
         strcpy(tempPath, abs);
@@ -82,8 +83,17 @@ int discoverDir(const char* path, const char* target, int shouldSearchFiles, int
 
         if(S_ISDIR(st.st_mode))
         {
+            long loc = telldir(dir);
+            closedir(dir);
             discoverDir(tempPath, target, shouldSearchFiles, shouldSearchDirectory);
+            dir = opendir(path);
+            if(dir == NULL)
+            {
+                LogPError("discover");
+                return -1;
+            }
             errno = 0;
+            seekdir(dir, loc);
         } else if(shouldSearchFiles)
         {
             printFilteredPath(tempPath, target);
