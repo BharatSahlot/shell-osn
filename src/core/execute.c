@@ -1,5 +1,6 @@
 #include "execute.h"
 #include "../globals.h"
+#include "process_list.h"
 
 #include <stdlib.h>
 #include <termios.h>
@@ -69,6 +70,7 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
             tcsetpgrp(term, getpid());
         } else
         {
+            addProcess(pid, cmd);
             bgProcessesRunning++;
             printf("[%d] %d\n", bgProcessesRunning, pid);
         }

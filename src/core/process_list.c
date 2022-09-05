@@ -21,6 +21,7 @@ void addProcess(pid_t pid, const char name[])
     {
         root = init_process(-1, "root");
     }
+
     Process* last = root;
     while(last->next != NULL) last = last->next;
     Process* process = init_process(pid, name);
@@ -32,7 +33,7 @@ void removeProcess(pid_t pid)
     if(root == NULL) return;
 
     Process* process = root, *last = NULL;
-    while(process->next != NULL)
+    while(process != NULL)
     {
         if(process->pid == pid)
         {
@@ -49,11 +50,11 @@ void killAllProcesses()
 {
     if(root == NULL) return;
 
-    Process* process = root, *last = NULL;
-    while(process->next != NULL)
+    Process* process = root->next, *last = root;
+    while(process != NULL)
     {
-        kill(process->pid, SIGKILL);
-        if(last) free(last);
+        if(process->pid > 0) kill(process->pid, SIGKILL);
+        free(last);
         last = process;
         process = process->next;
     }
@@ -65,7 +66,7 @@ const char* getProcessName(pid_t pid)
     if(root == NULL) return NULL;
     
     Process* process = root;
-    while(process->next != NULL)
+    while(process != NULL)
     {
         if(process->pid == pid) return process->name;
         process = process->next;

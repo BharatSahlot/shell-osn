@@ -1,5 +1,6 @@
 #include "parse.h"
 #include "execute.h"
+#include "process_list.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -45,6 +46,7 @@ void parse(char *cmd)
             parseArgs(st);
             if(strcmp(argsBuf[0], "exit") == 0)
             {
+                killAllProcesses();
                 shouldExitShell = 1;
                 return;
             }
@@ -57,6 +59,7 @@ void parse(char *cmd)
         parseArgs(st);
         if(strcmp(argsBuf[0], "exit") == 0)
         {
+            killAllProcesses();
             shouldExitShell = 1;
             return;
         }

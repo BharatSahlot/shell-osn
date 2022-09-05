@@ -4,6 +4,7 @@
 #include "core/parse.h"
 #include "core/prompt.h"
 #include "core/history.h"
+#include "core/process_list.h"
 #include "logger.h"
 #include "utils.h"
 
@@ -45,13 +46,13 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
         case CLD_CONTINUED: sta = "has continued"; break;
     }
     bgProcessesRunning--;
-
     if(tcgetpgrp(STDIN_FILENO) == getpid())
     {
-        printf("\nProcess with pid = %d %s\n", info->si_pid, sta);
+        printf("\n%s with pid = %d %s\n", getProcessName(p), info->si_pid, sta);
         render_prompt();
         fflush(stdout);
     }
+    removeProcess(p);
 }
 
 int main (int argc, char *argv[])
@@ -83,7 +84,7 @@ int main (int argc, char *argv[])
     {
         render_prompt();
 
-        if(fgets(cmd, 249, stdin) == NULL)
+        if(fgets(cmd, MAX_CMD_LENGTH, stdin) == NULL)
         {
             LogPError("Error while reading stdin");
             return -1;
