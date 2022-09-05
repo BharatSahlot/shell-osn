@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <unistd.h>
 #include <wait.h>
 
 int commandCount;
@@ -44,9 +45,13 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
         case CLD_CONTINUED: sta = "has continued"; break;
     }
     bgProcessesRunning--;
-    printf("\nProcess with pid = %d %s\n", info->si_pid, sta);
-    render_prompt();
-    fflush(stdout);
+
+    if(tcgetpgrp(STDIN_FILENO) == getpid())
+    {
+        printf("\nProcess with pid = %d %s\n", info->si_pid, sta);
+        render_prompt();
+        fflush(stdout);
+    }
 }
 
 int main (int argc, char *argv[])
@@ -62,11 +67,9 @@ int main (int argc, char *argv[])
     }
 
     // ctrl-c should only exit child process not shell
-    if(signal(SIGINT, SIG_IGN) == SIG_ERR)
-    {
-        LogPError("signal");
-        return -1;
-    }
+    signal(SIGINT, SIG_IGN);
+    signal(SIGTTOU, SIG_IGN);
+    signal(SIGTTIN, SIG_IGN);
 
     if(initHistory() == -1) return -1;
 

@@ -24,9 +24,15 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
         }
     }
 
+    int term = STDIN_FILENO;
     pid_t pid = fork();
     if(pid == 0)
     {
+        setpgid(pid, pid);
+        if(!executeInBackground)
+        {
+            tcsetpgrp(term, pid);
+        }
         signal(SIGINT, SIG_DFL);
         if(execve(cmd, (char* const*)argv, NULL) == -1)
         {
@@ -38,13 +44,16 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
         return 0;
     } else if(pid != -1)
     {
+        setpgid(pid, pid);
         lastCommandStatus = 0;
         if(!executeInBackground)
         {
+            tcsetpgrp(term, pid);
             time_t s = time(NULL);
-            wait(&lastCommandStatus);
+            waitpid(pid, &lastCommandStatus, 0);
             time_t e = time(NULL);
             lastCommandTime = e - s;
+            tcsetpgrp(term, getpid());
         } else
         {
             bgProcessesRunning++;
