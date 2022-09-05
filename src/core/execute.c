@@ -1,6 +1,8 @@
 #include "execute.h"
 #include "../globals.h"
 
+#include <stdlib.h>
+#include <termios.h>
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
@@ -24,7 +26,16 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
         }
     }
 
+    struct termios t;
+    if(tcgetattr(STDIN_FILENO, &t) == -1)
+    {
+        LogPError("exec");
+        lastCommandStatus = -1;
+        return -1;
+    }
+
     int term = STDIN_FILENO;
+    pid_t ppid = getpid();
     pid_t pid = fork();
     if(pid == 0)
     {
@@ -38,6 +49,8 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
         {
             LogPError("%s", cmd);
             lastCommandStatus = -1;
+            tcsetpgrp(term, ppid);
+            exit(-1);
             return -1;
         }
         lastCommandStatus = 0;
@@ -59,6 +72,7 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
             bgProcessesRunning++;
             printf("[%d] %d\n", bgProcessesRunning, pid);
         }
+        tcsetattr(term, TCSADRAIN, &t);
         return lastCommandStatus;
     }
     lastCommandStatus = -1;
