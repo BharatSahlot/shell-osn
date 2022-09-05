@@ -10,8 +10,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define MAX_ITEMS_IN_DIR 1000
-#define MAX_ITEM_LENGTH 50
+#define MAX_ITEMS_IN_DIR 4096
+#define MAX_ITEM_LENGTH 100
 
 int items = 0;
 char itemsBuffer[MAX_ITEMS_IN_DIR][MAX_ITEM_LENGTH];
