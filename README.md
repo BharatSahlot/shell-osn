@@ -65,6 +65,14 @@ Accepts paths to both directories and files. For directories it will list all th
 
 Gives information like status and virtual memory size for the current process or process with the given PID.
 
+> Sample Output
+```bash
+pid : 205888
+process status : R+
+memory : 1980
+executable path : ~/batak
+```
+
 ##### history : command history
 
 Records commands in a file and saved across sessions. Currently, the values of how many commands to store and display are fixed.
@@ -74,5 +82,11 @@ Records commands in a file and saved across sessions. Currently, the values of h
 - Flags: `d, f`
     - `d`: search for directories
     - `f`: search for files
+- Example:
+    - `discover -d src "build"` this will output all folders named in `build` inside `src`
+    - `discover -f src ".c"` this will output all files with extension `.c` inside `src`
+    - `discover -d -f src "tmp"` this will output all folders/files with named `tmp` inside `src`
+    - `discover -d -f ~ ` thi will output all files/folders in `~`
+    - `discover ~ ` thi will output all files/folders in `~`
 
 Lists all files/folders(depending on flags) matching the filter, in the given target directory. For now `<filter>` just accepts normal strings.
