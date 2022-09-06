@@ -60,9 +60,10 @@ const char* makePathAbsolute(const char* path)
     {
         sprintf(tempPathBuf, "%s%s", home, path + 1);
     } else strcpy(tempPathBuf, path);
-    const char* ptr = realpath(tempPathBuf, tempPathBuf2);
-    if(ptr != NULL) errno = 0; // realpath uses readlink for checking links, which results in leftover errno values
-    return ptr;
+
+    if(tempPathBuf[0] == '/') return tempPathBuf;
+    sprintf(tempPathBuf2, "%s/%s", getWorkingDir(), tempPathBuf);
+    return tempPathBuf2;
 }
 
 // joins two paths which dont contain ., .. and ~
