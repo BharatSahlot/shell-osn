@@ -49,4 +49,6 @@ extern int lastCommandStatus;
 // Time taken by last command in seconds
 extern long int lastCommandTime;
 
+extern struct termios termiosAttr;
+
 #endif

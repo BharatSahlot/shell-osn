@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <wait.h>
 #include <assert.h>
+#include <termios.h>
 
 int commandCount;
 Command commandArr[10];
@@ -26,6 +27,7 @@ int lastCommandStatus;
 long int lastCommandTime;
 int bgProcessesRunning;
 int shouldExitShell;
+struct termios termiosAttr;
 
 void zombie_handler(int sig, siginfo_t* info, void* ucontext)
 {
@@ -54,6 +56,7 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
     }
     if(tcgetpgrp(STDIN_FILENO) == getpid())
     {
+        tcsetattr(STDIN_FILENO, TCSAFLUSH, &termiosAttr);
         render_prompt();
         fflush(stdout);
     }
@@ -61,6 +64,14 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
 
 int main ()
 {
+    setpgrp();
+    tcsetpgrp(STDIN_FILENO, getpid());
+    if(tcgetattr(STDIN_FILENO, &termiosAttr) == -1)
+    {
+        LogPError("tcgetattr");
+        return -1;
+    }
+
     struct sigaction st;
     st.sa_sigaction = zombie_handler;
     st.sa_flags = SA_SIGINFO | SA_RESTART;
@@ -87,7 +98,7 @@ int main ()
     while(!shouldExitShell)
     {
         render_prompt();
-
+        tcsetattr(STDIN_FILENO, TCSADRAIN, &termiosAttr);
         if(fgets(cmd, MAX_CMD_LENGTH, stdin) == NULL)
         {
             signal(SIGCHLD, SIG_DFL);

@@ -8,10 +8,10 @@ objects := src/main.o src/utils.o src/logger.o \
 		   src/core/execute.o src/core/parse.o src/core/prompt.o \
 		   src/core/history.o src/core/process_list.o
 
-$(objects): %.o: %.c
-
 all: $(objects) src/globals.h
 	$(CC) $(CFLAGS) $(objects) -o batak
+
+$(objects): %.o: %.c
 
 .PHONY : all
 

@@ -27,25 +27,19 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
         }
     }
 
-    struct termios t;
-    if(tcgetattr(STDIN_FILENO, &t) == -1)
-    {
-        LogPError("exec");
-        lastCommandStatus = -1;
-        return -1;
-    }
-
     int term = STDIN_FILENO;
     pid_t ppid = getpid();
     pid_t pid = fork();
     if(pid == 0)
     {
+        signal(SIGINT, SIG_DFL);
+        signal(SIGTTOU, SIG_DFL);
+        signal(SIGTTIN, SIG_DFL);
         setpgid(pid, pid);
         if(!executeInBackground)
         {
             tcsetpgrp(term, pid);
         }
-        signal(SIGINT, SIG_DFL);
         execvp(cmd, (char* const*)argv);
         LogPError("%s", cmd); // child prints the error
         lastCommandStatus = -1;
@@ -69,7 +63,7 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
             bgProcessesRunning++;
             printf("[%d] %d\n", bgProcessesRunning, pid);
         }
-        tcsetattr(term, TCSADRAIN, &t);
+        tcsetattr(STDIN_FILENO, TCSAFLUSH, &termiosAttr);
         return lastCommandStatus;
     }
     lastCommandStatus = -1;
