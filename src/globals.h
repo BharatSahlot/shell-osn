@@ -47,6 +47,6 @@ extern int shouldExitShell;
 extern int lastCommandStatus;
 
 // Time taken by last command in seconds
-extern int lastCommandTime;
+extern long int lastCommandTime;
 
 #endif

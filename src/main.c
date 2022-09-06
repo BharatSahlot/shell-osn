@@ -16,13 +16,14 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <wait.h>
+#include <assert.h>
 
 int commandCount;
 Command commandArr[10];
 char currentPath[MAX_PATH_SIZE];
 char home[MAX_PATH_SIZE];
 int lastCommandStatus;
-int lastCommandTime;
+long int lastCommandTime;
 int bgProcessesRunning;
 int shouldExitShell;
 
@@ -36,7 +37,6 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
         if(errno != ECHILD) LogPError("zombie");
         return;
     }
-    char name[50];
     lastCommandStatus = 0;
     const char* sta = "exited normally";
     switch (info->si_code) {
@@ -55,7 +55,7 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
     removeProcess(p);
 }
 
-int main (int argc, char *argv[])
+int main ()
 {
     struct sigaction st;
     st.sa_sigaction = zombie_handler;

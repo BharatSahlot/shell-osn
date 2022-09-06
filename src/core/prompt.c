@@ -31,7 +31,7 @@ void render_prompt()
     const char* dirColor = YELLOW;
     if(lastCommandTime > 0)
     {
-        printf("%s<%s@%s:%s%s%s took %ds%s>%s ", prefixColor, username, sysname, dirColor, addTildaToPath(currentPath), CYAN, lastCommandTime, prefixColor, RESET);
+        printf("%s<%s@%s:%s%s%s took %lds%s>%s ", prefixColor, username, sysname, dirColor, addTildaToPath(currentPath), CYAN, lastCommandTime, prefixColor, RESET);
         lastCommandTime = 0;
     } else
     {

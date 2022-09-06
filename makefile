@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -O2
+CFLAGS := -O2 -Wall
 
 objects := src/main.o src/utils.o src/logger.o \
 		   src/builtins/builtins.o src/builtins/cd.o src/builtins/pwd.o \

@@ -1,8 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <pwd.h>
-#include <grp.h>
+#include <sys/types.h>
 
 // returns username if successfull else NULL
 const char* getUsernameFromId(uid_t uid);

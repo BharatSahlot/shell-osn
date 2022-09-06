@@ -21,7 +21,7 @@ void Log(int level, const char *format, ...)
 
     va_list args;
     va_start(args, format);
-    int len = vsprintf(errBuf + 5, format, args);
+    vsprintf(errBuf + 5, format, args);
 
     if(level == LOGL_ERROR) fprintf(stderr, "%s\033[0m", errBuf);
     else printf("%s\033[0m", errBuf);

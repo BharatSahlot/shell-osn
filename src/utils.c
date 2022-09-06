@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <grp.h>
+
 #include <stdio.h>
 
 char tempPathBuf[MAX_PATH_SIZE], tempPathBuf2[MAX_PATH_SIZE];
