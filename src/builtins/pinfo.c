@@ -27,9 +27,9 @@ int pinfo(int argc, const char *argv[])
     int n = read(fd, buffer, 100);
     close(fd);
 
-    int id;
+    int id, fgid, _;
     char executablePath[100], state;
-    sscanf(buffer, "%d%s %c", &id, executablePath, &state);
+    sscanf(buffer, "%d%s %c %d%d%d%d%d", &id, executablePath, &state, &_, &_, &_, &_, &fgid);
 
     sprintf(path, "/proc/%d/exe", pid);
     n = readlink(path, buffer, 99);
@@ -57,7 +57,7 @@ int pinfo(int argc, const char *argv[])
     sscanf(buffer, "%d", &vmSize);
 
     printf("pid : %d\n", pid);
-    printf("process status : %c\n", state);
+    printf("process status : %c%c\n", state, (fgid == id) ? '+' : '\0');
     printf("memory : %d\n", vmSize);
     printf("executable path : %s\n", executablePath);
     return 0;
