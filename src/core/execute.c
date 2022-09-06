@@ -46,16 +46,11 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
             tcsetpgrp(term, pid);
         }
         signal(SIGINT, SIG_DFL);
-        if(execve(cmd, (char* const*)argv, NULL) == -1)
-        {
-            LogPError("%s", cmd);
-            lastCommandStatus = -1;
-            tcsetpgrp(term, ppid);
-            exit(-1);
-            return -1;
-        }
-        lastCommandStatus = 0;
-        return 0;
+        execvp(cmd, (char* const*)argv);
+        LogPError("%s", cmd); // child prints the error
+        lastCommandStatus = -1;
+        tcsetpgrp(term, ppid);
+        exit(-1);
     } else if(pid != -1)
     {
         setpgid(pid, pid);

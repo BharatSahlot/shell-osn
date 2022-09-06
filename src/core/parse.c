@@ -46,7 +46,6 @@ void parse(char *cmd)
             parseArgs(st);
             if(strcmp(argsBuf[0], "exit") == 0)
             {
-                killAllProcesses();
                 shouldExitShell = 1;
                 return;
             }
@@ -59,7 +58,6 @@ void parse(char *cmd)
         parseArgs(st);
         if(strcmp(argsBuf[0], "exit") == 0)
         {
-            killAllProcesses();
             shouldExitShell = 1;
             return;
         }

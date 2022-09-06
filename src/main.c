@@ -46,13 +46,17 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
         case CLD_CONTINUED: sta = "has continued"; break;
     }
     bgProcessesRunning--;
+    const char* processName = getProcessName(p);
+    if(processName != NULL)
+    {
+        printf("\n%s with pid = %d %s\n", processName, info->si_pid, sta);
+        removeProcess(p);
+    }
     if(tcgetpgrp(STDIN_FILENO) == getpid())
     {
-        printf("\n%s with pid = %d %s\n", getProcessName(p), info->si_pid, sta);
         render_prompt();
         fflush(stdout);
     }
-    removeProcess(p);
 }
 
 int main ()
@@ -86,6 +90,8 @@ int main ()
 
         if(fgets(cmd, MAX_CMD_LENGTH, stdin) == NULL)
         {
+            signal(SIGCHLD, SIG_DFL);
+            killAllProcesses();
             LogPError("Error while reading stdin");
             return -1;
         }
@@ -94,5 +100,7 @@ int main ()
         parse(cmd);
         saveHistory();
     }
+    signal(SIGCHLD, SIG_DFL);
+    killAllProcesses();
     return 0;
 }

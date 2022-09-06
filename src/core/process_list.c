@@ -59,6 +59,7 @@ void killAllProcesses()
         process = process->next;
     }
     if(last) free(last);
+    root = NULL;
 }
 
 const char* getProcessName(pid_t pid)
