@@ -1,3 +1,4 @@
+#include "core/autocomplete.h"
 #include "globals.h"
 #include "builtins/builtins.h"
 #include "core/execute.h"
@@ -27,7 +28,7 @@ int lastCommandStatus;
 long int lastCommandTime;
 int bgProcessesRunning;
 int shouldExitShell;
-struct termios termiosAttr;
+struct termios termiosAttr, defTermiosAttr;
 
 void zombie_handler(int sig, siginfo_t* info, void* ucontext)
 {
@@ -66,11 +67,12 @@ int main ()
 {
     setpgrp();
     tcsetpgrp(STDIN_FILENO, getpid());
-    if(tcgetattr(STDIN_FILENO, &termiosAttr) == -1)
-    {
-        LogPError("tcgetattr");
-        return -1;
-    }
+    tcgetattr(STDIN_FILENO, &defTermiosAttr);
+    tcgetattr(STDIN_FILENO, &termiosAttr);
+    termiosAttr.c_lflag &= ~( ICANON | ECHO );
+    termiosAttr.c_cc[VMIN] = 1;
+    termiosAttr.c_cc[VTIME] = 0;
+    tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
 
     struct sigaction st;
     st.sa_sigaction = zombie_handler;
@@ -83,7 +85,7 @@ int main ()
     }
 
     // ctrl-c should only exit child process not shell
-    signal(SIGINT, SIG_IGN);
+    // signal(SIGINT, SIG_IGN);
     signal(SIGTTOU, SIG_IGN);
     signal(SIGTTIN, SIG_IGN);
 
@@ -98,12 +100,55 @@ int main ()
     while(!shouldExitShell)
     {
         render_prompt();
-        if(fgets(cmd, MAX_CMD_LENGTH, stdin) == NULL)
+        fflush(stdout);
+        int cmdLength = 0;
+        while(1)
         {
-            signal(SIGCHLD, SIG_DFL);
-            killAllProcesses();
-            LogPError("Error while reading stdin");
-            return -1;
+            read(STDIN_FILENO, &cmd[cmdLength], 1);
+            char ch = cmd[cmdLength];
+            switch (ch) {
+                case '\x1b': // arrow keys
+                {
+                    char buf[3];
+                    buf[2] = 0;
+                    read(STDIN_FILENO, buf, 2);
+                    continue;
+                }
+                case '\t':
+                {
+                    if(cmdLength == 0) continue;
+                    autocomplete(cmdLength, cmd);
+                    printf("\n");
+                    render_prompt();
+                    for(int i = 0; i < cmdLength; i++)
+                    {
+                        printf("%c", cmd[i]);
+                    }
+                    fflush(stdout);
+                    continue;
+                }
+                case '\177':
+                {
+                    if(cmdLength > 0)
+                    {
+                        cmdLength--;
+                        printf("\b \b");
+                        fflush(stdout);
+                    }
+                    continue;
+                }
+                default:
+                {
+                    printf("%c", cmd[cmdLength]);
+                    fflush(stdout);
+                }
+            }
+            if(cmd[cmdLength] == '\n')
+            {
+                cmd[cmdLength] = '\0';
+                break;
+            }
+            cmdLength++;
         }
         loadHistory();
         recordInHistory(cmd);

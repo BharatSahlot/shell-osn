@@ -35,6 +35,7 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
         signal(SIGINT, SIG_DFL);
         signal(SIGTTOU, SIG_DFL);
         signal(SIGTTIN, SIG_DFL);
+        tcsetattr(STDIN_FILENO, TCSANOW, &defTermiosAttr);
         setpgid(pid, pid);
         if(!executeInBackground)
         {
@@ -57,13 +58,14 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
             time_t e = time(NULL);
             lastCommandTime = e - s;
             tcsetpgrp(term, getpid());
+            tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
         } else
         {
             addProcess(pid, cmd);
             bgProcessesRunning++;
+            tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
             printf("[%d] %d\n", bgProcessesRunning, pid);
         }
-        tcsetattr(STDIN_FILENO, TCSAFLUSH, &termiosAttr);
         return lastCommandStatus;
     }
     lastCommandStatus = -1;
