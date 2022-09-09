@@ -98,7 +98,6 @@ int main ()
     while(!shouldExitShell)
     {
         render_prompt();
-        tcsetattr(STDIN_FILENO, TCSADRAIN, &termiosAttr);
         if(fgets(cmd, MAX_CMD_LENGTH, stdin) == NULL)
         {
             signal(SIGCHLD, SIG_DFL);
