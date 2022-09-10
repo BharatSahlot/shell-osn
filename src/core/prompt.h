@@ -4,5 +4,6 @@
 #include "../globals.h"
 
 void render_prompt();
+int getLastPromptLength();
 
 #endif

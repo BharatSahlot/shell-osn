@@ -116,15 +116,9 @@ int main ()
                 }
                 case '\t':
                 {
-                    if(cmdLength == 0) continue;
-                    autocomplete(cmdLength, cmd);
-                    printf("\n");
-                    render_prompt();
-                    for(int i = 0; i < cmdLength; i++)
-                    {
-                        printf("%c", cmd[i]);
-                    }
-                    fflush(stdout);
+                    // if(cmdLength == 0) continue;
+                    cmd[cmdLength] = '\0';
+                    cmdLength = autocomplete(cmdLength, cmd);
                     continue;
                 }
                 case '\177':

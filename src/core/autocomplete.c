@@ -1,5 +1,6 @@
 #include "autocomplete.h"
 #include "../globals.h"
+#include "../core/prompt.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,16 +8,30 @@
 #include <string.h>
 #include <sys/stat.h>
 
-void autocomplete(int n, char *buf)
+int autocomplete(int n, char *buf)
 {
     DIR* dir = opendir(currentPath);
     if(dir == NULL)
     {
         LogPError("dsa");
-        return;
+        return n;
+    }
+
+    char* origBuf = buf;
+    int ln = 0;
+    for(int i = n - 1; i >= 0; i--)
+    {
+        if(buf[i] == ' ')
+        {
+            ln = i + 1;
+            n -= i + 1;
+            buf = &buf[i + 1];
+            break;
+        }
     }
 
     int lines = 0;
+    const char* lastItem = NULL;
     struct dirent* item = readdir(dir);
     while(item != NULL)
     {
@@ -26,8 +41,52 @@ void autocomplete(int n, char *buf)
             continue;
         }
         lines++;
+        lastItem = item->d_name;
+        item = readdir(dir);
+    }
+
+    if(lines == 1)
+    {
+        strcpy(buf, lastItem);
+        closedir(dir);
+
+        printf("\x1b[%dD", n);
+        n = strlen(lastItem);
+        
+        int r = isDir(lastItem);
+        if(r == 1) // dont do just if(r), isDir can return -1
+        {
+            buf[n++] = '/';
+        } else if(r == 0)
+        {
+            buf[n++] = ' ';
+        }
+
+        for(int i = 0; i < n; i++)
+        {
+            printf("%c", buf[i]);
+        }
+
+        fflush(stdout);
+        return ln + n;
+    }
+
+    seekdir(dir, 0);
+    item = readdir(dir);
+    while(item != NULL)
+    {
+        if(strncmp(buf, item->d_name, n) != 0)
+        {
+            item = readdir(dir);
+            continue;
+        }
         printf("\n%s", item->d_name);
         item = readdir(dir);
     }
     closedir(dir);
+    printf("\n");
+    render_prompt();
+    for(int i = 0; i < ln + n; i++) printf("%c", origBuf[i]);
+    fflush(stdout);
+    return ln + n;
 }

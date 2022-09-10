@@ -2,9 +2,17 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 const char* username = NULL;
 char sysname[25] = "\0";
+
+int lastPromptLength = 0;
+
+int getLastPromptLength()
+{
+    return lastPromptLength;
+}
 
 void render_prompt()
 {
@@ -31,10 +39,20 @@ void render_prompt()
     const char* dirColor = YELLOW;
     if(lastCommandTime > 0)
     {
-        printf("%s<%s@%s:%s%s%s took %lds%s>%s ", prefixColor, username, sysname, dirColor, addTildaToPath(currentPath), CYAN, lastCommandTime, prefixColor, RESET);
+        int c = 0, t = lastCommandTime;
+        while(t > 0)
+        {
+            c++;
+            t /= 10;
+        }
+        const char* pth = addTildaToPath(currentPath);
+        lastPromptLength = 11 + strlen(username) + strlen(sysname) + strlen(pth) + c;
+        printf("%s<%s@%s:%s%s%s took %lds%s>%s ", prefixColor, username, sysname, dirColor, pth, CYAN, lastCommandTime, prefixColor, RESET);
         lastCommandTime = 0;
     } else
     {
-        printf("%s<%s@%s:%s%s%s>%s ", prefixColor, username, sysname, dirColor, addTildaToPath(currentPath), prefixColor, RESET);
+        const char* pth = addTildaToPath(currentPath);
+        lastPromptLength = 5 + strlen(username) + strlen(sysname) + strlen(pth);
+        printf("%s<%s@%s:%s%s%s>%s ", prefixColor, username, sysname, dirColor, pth, prefixColor, RESET);
     }
 }
