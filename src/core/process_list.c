@@ -57,6 +57,14 @@ int addProcess(pid_t pid, const char name[])
         }
         last = last->next;
     }
+    if(!last->isValid)
+    {
+        last->pid = pid;
+        strcpy(last->name, name);
+        last->isValid = 1;
+        last->status = 0;
+        return last->id;
+    }
 
     Process* process = init_process(pid, name);
     process->id = last->id + 1;
