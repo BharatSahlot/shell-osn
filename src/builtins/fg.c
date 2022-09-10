@@ -30,22 +30,27 @@ int fg(int argc, const char* argv[])
     {
         if(errno != 0)
         {
-            LogPError("sig: %s is not a valid index", argv[1]);
+            LogPError("fg: %s is not a valid index", argv[1]);
             return -1;
         }
-        Log(LOGL_ERROR, "sig: %s is not a valid index\n", argv[1]);
+        Log(LOGL_ERROR, "fg: %s is not a valid index\n", argv[1]);
         return -1;
     }
 
     pid_t pid = getProcessPID(index);
     if(pid == -1)
     {
-        Log(LOGL_ERROR, "sig: %s is not a valid index\n", argv[1]);
+        Log(LOGL_ERROR, "fg: %s is not a valid index\n", argv[1]);
         return -1;
     }
 
     tcsetpgrp(STDIN_FILENO, pid);
-    kill(-pid, SIGCONT); // send the continue signal
+    if(kill(-pid, SIGCONT) == -1) // send the continue signal
+    {
+        tcsetpgrp(STDIN_FILENO, getpid());
+        LogPError("fg");
+        return -1;
+    }
     time_t s = time(NULL);
     waitpid(pid, &lastCommandStatus, 0);
     time_t e = time(NULL);

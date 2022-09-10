@@ -31,4 +31,7 @@ void useBuiltins()
 
     commandArr[commandCount].cmd = "fg";
     commandArr[commandCount++].func = fg;
+
+    commandArr[commandCount].cmd = "bg";
+    commandArr[commandCount++].func = bg;
 }
