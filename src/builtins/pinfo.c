@@ -56,9 +56,9 @@ int pinfo(int argc, const char *argv[])
     int vmSize = 0;
     sscanf(buffer, "%d", &vmSize);
 
-    printf("pid : %d\n", pid);
-    printf("process status : %c%c\n", state, (fgid == id) ? '+' : '\0');
-    printf("memory : %d\n", vmSize);
-    printf("executable path : %s\n", executablePath);
+    print("pid : %d\n", pid);
+    print("process status : %c%c\n", state, (fgid == id) ? '+' : '\0');
+    print("memory : %d\n", vmSize);
+    print("executable path : %s\n", executablePath);
     return 0;
 }

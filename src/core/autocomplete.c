@@ -50,7 +50,7 @@ int autocomplete(int n, char *buf)
         strcpy(buf, lastItem);
         closedir(dir);
 
-        printf("\x1b[%dD", n);
+        print("\x1b[%dD", n);
         n = strlen(lastItem);
         
         int r = isDir(lastItem);
@@ -64,7 +64,7 @@ int autocomplete(int n, char *buf)
 
         for(int i = 0; i < n; i++)
         {
-            printf("%c", buf[i]);
+            print("%c", buf[i]);
         }
 
         fflush(stdout);
@@ -80,13 +80,13 @@ int autocomplete(int n, char *buf)
             item = readdir(dir);
             continue;
         }
-        printf("\n%s", item->d_name);
+        print("\n%s", item->d_name);
         item = readdir(dir);
     }
     closedir(dir);
-    printf("\n");
+    print("\n");
     render_prompt();
-    for(int i = 0; i < ln + n; i++) printf("%c", origBuf[i]);
+    for(int i = 0; i < ln + n; i++) print("%c", origBuf[i]);
     fflush(stdout);
     return ln + n;
 }

@@ -34,8 +34,6 @@ struct termios termiosAttr, defTermiosAttr;
 int cmdLength = 0;
 char cmd[MAX_CMD_LENGTH];
 
-int shouldRenderPrompt = 0;
-
 void zombie_handler(int sig, siginfo_t* info, void* ucontext)
 {
     int status = 0;
@@ -57,7 +55,7 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
     const char* processName = getProcessNameByPID(p);
     if(processName != NULL)
     {
-        printf("\n%s with pid = %d %s\n", processName, info->si_pid, sta);
+        print("\n%s with pid = %d %s\n", processName, info->si_pid, sta);
         setProcessStatus(p, info->si_code == CLD_STOPPED);
         if(info->si_code != CLD_STOPPED && info->si_code != CLD_CONTINUED)
         {
@@ -67,11 +65,12 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
     }
     if(tcgetpgrp(STDIN_FILENO) == getpid())
     {
-        shouldRenderPrompt = 0;
         tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
-        render_prompt();
-        for(int i = 0; i < cmdLength; i++) printf("%c", cmd[i]);
-        fflush(stdout);
+        if(render_prompt())
+        {
+            for(int i = 0; i < cmdLength; i++) print("%c", cmd[i]);
+            fflush(stdout);
+        }
     }
 }
 
@@ -114,15 +113,9 @@ int main ()
 
     useBuiltins();
 
-    shouldRenderPrompt = 1;
     while(!shouldExitShell)
     {
-        if(shouldRenderPrompt)
-        {
-            render_prompt();
-            fflush(stdout);
-        }
-        shouldRenderPrompt = 1;
+        render_prompt();
         cmdLength = 0;
         while(1)
         {
@@ -153,15 +146,13 @@ int main ()
                     if(cmdLength > 0)
                     {
                         cmdLength--;
-                        printf("\b \b");
-                        fflush(stdout);
+                        print("\b \b");
                     }
                     continue;
                 }
                 default:
                 {
-                    printf("%c", cmd[cmdLength]);
-                    fflush(stdout);
+                    print("%c", cmd[cmdLength]);
                 }
             }
             if(cmd[cmdLength] == '\n')
@@ -172,7 +163,6 @@ int main ()
                 recordInHistory(cmd);
                 parse(cmd);
                 saveHistory();
-                shouldRenderPrompt = 1;
                 break;
             }
             cmdLength++;

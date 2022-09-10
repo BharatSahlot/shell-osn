@@ -12,7 +12,7 @@ int history(int argc, const char* argv[])
     if(i < 0) i = 0;
     for(; i < historyCount; i++)
     {
-        printf("%s\n", historyArr[i]);
+        print("%s\n", historyArr[i]);
     }
     return 0;
 }

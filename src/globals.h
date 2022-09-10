@@ -1,6 +1,7 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
+#include "core/io.h"
 #include "utils.h"
 #include "logger.h"
 

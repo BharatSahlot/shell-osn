@@ -6,9 +6,9 @@ int echo(int argc, const char **argv)
 {
     for(int i = 1; i < argc; i++)
     {
-        if(i > 1) printf(" ");
-        printf("%s", argv[i]);
+        if(i > 1) print(" ");
+        print("%s", argv[i]);
     }
-    printf("\n");
+    print("\n");
     return 0;
 }

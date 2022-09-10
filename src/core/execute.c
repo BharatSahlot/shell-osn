@@ -64,7 +64,7 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
         {
             int id = addProcess(pid, cmd);
             tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
-            printf("[%d] %d\n", id, pid);
+            print("[%d] %d\n", id, pid);
         }
         return lastCommandStatus;
     }
