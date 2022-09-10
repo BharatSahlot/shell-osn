@@ -26,7 +26,8 @@ The `src` folder contains all the source code of the project. The source is main
 | | | | |
 | `core/execute.(c/h)`    | declares and defines functions for executing commands    |  `core/history.(c/h)`   |  contains code for loading, saving and recording commands in history   |
 | `core/parse.(c/h)`    | declares and defines functions for parsing commands, then executes them using functions declared in `execute.h`    |  `core/process_list.(c/h)`   |  defines a linked list for storing all the background processes started by the shell   |
-| `core/prompt.(c/h)` | declares and defines function for printing the prompt, uses state variables from `globals.h` to show last command status and time |  | |
+| `core/prompt.(c/h)` | declares and defines function for printing the prompt, uses state variables from `globals.h` to show last command status and time | `core/io.(c/h)` | defines a `print` function which prints to stdout and keeps track of number of lines printed, written for fixing the double prompt bug |
+| `core/autocomplete.(c/h)` | contains code for handling autocompletion and displaying the possible completions | | |
 
 
 ### Usage
@@ -34,6 +35,8 @@ The `src` folder contains all the source code of the project. The source is main
 The working directory of the shell at startup, that is the directory where it was executed from, is considered to be the home.
 
 Commands can be chained with `;` or `&`. `;` will run the previous command in foreground, whereas `&` will run it in background.
+
+`tab` can be pressed to trigger autocompletion.
 
 #### Inbuilt Commands
 
@@ -45,6 +48,8 @@ Commands can be chained with `;` or `&`. `;` will run the previous command in fo
 - **pinfo**: `<optional-pid>`
 - **history**: prints the last 10 commands
 - **discover**: `<target-dir> -d -f <filter>` Search for files/directories recursively in the given directory
+- **jobs**: `-r, -s` prints all stopped or running background jobs started by the shell
+- **sig**: `<index> <signal>` raises `<signal` signal for the job with index `<index>` in jobs list
 
 #### More info
 
