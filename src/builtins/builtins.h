@@ -14,5 +14,6 @@ extern int history(int argc, const char* argv[]);
 extern int discover(int argc, const char* argv[]);
 extern int jobs(int argc, const char* argv[]);
 extern int sig(int argc, const char* argv[]);
+extern int fg(int argc, const char* argv[]);
 
 #endif

@@ -13,18 +13,24 @@ int sig(int argc, const char **argv)
         Log(LOGL_ERROR, "sig: too many arguements given\n");
         return -1;
     }
+    if(argc < 3)
+    {
+        Log(LOGL_ERROR, "sig: too few arguements given\n");
+        return -1;
+    }
 
-    char* endptr = malloc(sizeof(char));
+    char ch;
+    char* endptr = &ch;
     errno = 0;
     long index = strtol(argv[1], &endptr, 10);
     if(*endptr != '\0' || errno != 0)
     {
         if(errno != 0)
         {
-            LogPError("sig: %s is not a valid pid", argv[1]);
+            LogPError("sig: %s is not a valid index", argv[1]);
             return -1;
         }
-        Log(LOGL_ERROR, "sig: %s is not a valid pid.\n", argv[1]);
+        Log(LOGL_ERROR, "sig: %s is not a valid index\n", argv[1]);
         return -1;
     }
     pid_t pid = getProcessPID(index);

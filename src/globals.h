@@ -29,7 +29,7 @@ typedef struct
 } Command;
 
 extern int commandCount;
-extern Command commandArr[10];
+extern Command commandArr[15];
 
 extern int historyCount;
 extern char historyArr[HCOMMANDS_TO_STORE][MAX_CMD_LENGTH];

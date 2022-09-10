@@ -47,7 +47,7 @@ int jobs(int argc, const char **argv)
     if(root != NULL) root = root->next;
     while(root != NULL)
     {
-        if((!showRunningJobs && root->status == 0) ||
+        if(!root->isValid || (!showRunningJobs && root->status == 0) ||
             (!showStoppedJobs && root->status == 1))
         {
             root = root->next;

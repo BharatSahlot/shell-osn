@@ -22,7 +22,7 @@
 #include <termios.h>
 
 int commandCount;
-Command commandArr[10];
+Command commandArr[15];
 char currentPath[MAX_PATH_SIZE];
 char home[MAX_PATH_SIZE];
 int lastCommandStatus;
