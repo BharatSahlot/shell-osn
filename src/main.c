@@ -11,6 +11,7 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <signal.h>
 #include <sys/stat.h>
@@ -48,16 +49,20 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
         case CLD_STOPPED: sta = "has stopped"; break;
         case CLD_CONTINUED: sta = "has continued"; break;
     }
-    bgProcessesRunning--;
     const char* processName = getProcessName(p);
     if(processName != NULL)
     {
         printf("\n%s with pid = %d %s\n", processName, info->si_pid, sta);
-        removeProcess(p);
+        setProcessStatus(p, info->si_code == CLD_STOPPED);
+        if(info->si_code != CLD_STOPPED && info->si_code != CLD_CONTINUED)
+        {
+            removeProcess(p);
+            bgProcessesRunning--;
+        }
     }
     if(tcgetpgrp(STDIN_FILENO) == getpid())
     {
-        tcsetattr(STDIN_FILENO, TCSAFLUSH, &termiosAttr);
+        tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
         render_prompt();
         fflush(stdout);
     }
@@ -65,7 +70,11 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
 
 int main ()
 {
+    int shell;
+    while (tcgetpgrp (STDIN_FILENO) != (shell = getpgrp ()))
+        kill (- shell, SIGTTIN);
     setpgrp();
+
     tcsetpgrp(STDIN_FILENO, getpid());
     tcgetattr(STDIN_FILENO, &defTermiosAttr);
     tcgetattr(STDIN_FILENO, &termiosAttr);
@@ -88,6 +97,8 @@ int main ()
     // signal(SIGINT, SIG_IGN);
     signal(SIGTTOU, SIG_IGN);
     signal(SIGTTIN, SIG_IGN);
+    signal(SIGQUIT, SIG_IGN);
+    signal(SIGTSTP, SIG_IGN);
 
     if(initHistory() == -1) return -1;
 
@@ -104,7 +115,12 @@ int main ()
         int cmdLength = 0;
         while(1)
         {
-            read(STDIN_FILENO, &cmd[cmdLength], 1);
+            if(read(STDIN_FILENO, &cmd[cmdLength], 1) == -1)
+            {
+                LogPError("read");
+                // break;
+                return -1;
+            }
             char ch = cmd[cmdLength];
             switch (ch) {
                 case '\x1b': // arrow keys
@@ -140,14 +156,14 @@ int main ()
             if(cmd[cmdLength] == '\n')
             {
                 cmd[cmdLength] = '\0';
+                loadHistory();
+                recordInHistory(cmd);
+                parse(cmd);
+                saveHistory();
                 break;
             }
             cmdLength++;
         }
-        loadHistory();
-        recordInHistory(cmd);
-        parse(cmd);
-        saveHistory();
     }
     signal(SIGCHLD, SIG_DFL);
     killAllProcesses();

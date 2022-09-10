@@ -22,4 +22,7 @@ void useBuiltins()
 
     commandArr[commandCount].cmd = "discover";
     commandArr[commandCount++].func = discover;
+
+    commandArr[commandCount].cmd = "jobs";
+    commandArr[commandCount++].func = jobs;
 }

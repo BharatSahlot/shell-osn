@@ -32,11 +32,11 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
     pid_t pid = fork();
     if(pid == 0)
     {
-        signal(SIGINT, SIG_DFL);
+        setpgid(pid, pid);
         signal(SIGTTOU, SIG_DFL);
         signal(SIGTTIN, SIG_DFL);
-        tcsetattr(STDIN_FILENO, TCSANOW, &defTermiosAttr);
-        setpgid(pid, pid);
+        signal(SIGQUIT, SIG_DFL);
+        signal(SIGTSTP, SIG_DFL);
         if(!executeInBackground)
         {
             tcsetpgrp(term, pid);
@@ -48,6 +48,7 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
         exit(-1);
     } else if(pid != -1)
     {
+        tcsetattr(STDIN_FILENO, TCSANOW, &defTermiosAttr);
         setpgid(pid, pid);
         lastCommandStatus = 0;
         if(!executeInBackground)

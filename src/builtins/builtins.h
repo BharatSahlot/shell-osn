@@ -12,5 +12,6 @@ extern int echo(int argc, const char* argv[]);
 extern int pinfo(int argc, const char* argv[]);
 extern int history(int argc, const char* argv[]);
 extern int discover(int argc, const char* argv[]);
+extern int jobs(int argc, const char* argv[]);
 
 #endif
