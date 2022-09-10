@@ -4,12 +4,24 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
 Process* root = NULL;
 
 const Process* getProcessListRoot()
 {
     return root;
+}
+
+Process* next(Process* process)
+{
+    process = process->next;
+    while(process != NULL)
+    {
+        if(process->isValid) break;
+        process = process->next;
+    }
+    return process;
 }
 
 Process* init_process(pid_t pid, const char name[])
@@ -19,12 +31,13 @@ Process* init_process(pid_t pid, const char name[])
     process->next = NULL;
     process->id = -1;
     process->status = 0;
+    process->isValid = 1;
     memset(process->name, 0, sizeof(process->name));
     strcpy(process->name, name);
     return process;
 }
 
-void addProcess(pid_t pid, const char name[])
+int addProcess(pid_t pid, const char name[])
 {
     if(root == NULL)
     {
@@ -32,27 +45,38 @@ void addProcess(pid_t pid, const char name[])
     }
 
     Process* last = root;
-    while(last->next != NULL) last = last->next;
+    while(last->next != NULL)
+    {
+        if(!last->isValid)
+        {
+            last->pid = pid;
+            strcpy(last->name, name);
+            last->isValid = 1;
+            last->status = 0;
+            return last->id;
+        }
+        last = last->next;
+    }
+
     Process* process = init_process(pid, name);
-    process->id = bgProcessesRunning;
+    process->id = last->id + 1;
     last->next = process;
+    return process->id;
 }
 
 void removeProcess(pid_t pid)
 {
     if(root == NULL) return;
 
-    Process* process = root, *last = NULL;
+    Process* process = next(root);
     while(process != NULL)
     {
         if(process->pid == pid)
         {
-            last->next = process->next;
-            free(process);
+            process->isValid = 0;
             return;
         }
-        last = process;
-        process = process->next;
+        process = next(process);
     }
 }
 
@@ -63,7 +87,7 @@ void killAllProcesses()
     Process* process = root->next, *last = root;
     while(process != NULL)
     {
-        if(process->pid > 0) kill(process->pid, SIGKILL);
+        if(process->isValid && process->pid > 0) kill(process->pid, SIGKILL);
         free(last);
         last = process;
         process = process->next;
@@ -72,17 +96,30 @@ void killAllProcesses()
     root = NULL;
 }
 
-const char* getProcessName(pid_t pid)
+const char* getProcessNameByPID(pid_t pid)
 {
     if(root == NULL) return NULL;
     
-    Process* process = root;
+    Process* process = next(root);
     while(process != NULL)
     {
         if(process->pid == pid) return process->name;
-        process = process->next;
+        process = next(process);
     }
     return NULL;
+}
+
+pid_t getProcessPID(int index)
+{
+    if(root == NULL) return -1;
+
+    Process* process = next(root);
+    while(process != NULL)
+    {
+        if(process->id == index) return process->pid;
+        process = next(process);
+    }
+    return -1;
 }
 
 void setProcessStatus(pid_t pid, int status)
@@ -97,7 +134,7 @@ void setProcessStatus(pid_t pid, int status)
             process->status = status;
             break;
         }
-        process = process->next;
+        process = next(process);
     }
     return;
 }

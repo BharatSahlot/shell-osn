@@ -31,6 +31,11 @@ int bgProcessesRunning;
 int shouldExitShell;
 struct termios termiosAttr, defTermiosAttr;
 
+int cmdLength = 0;
+char cmd[MAX_CMD_LENGTH];
+
+int shouldRenderPrompt = 0;
+
 void zombie_handler(int sig, siginfo_t* info, void* ucontext)
 {
     int status = 0;
@@ -49,7 +54,7 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
         case CLD_STOPPED: sta = "has stopped"; break;
         case CLD_CONTINUED: sta = "has continued"; break;
     }
-    const char* processName = getProcessName(p);
+    const char* processName = getProcessNameByPID(p);
     if(processName != NULL)
     {
         printf("\n%s with pid = %d %s\n", processName, info->si_pid, sta);
@@ -62,8 +67,10 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
     }
     if(tcgetpgrp(STDIN_FILENO) == getpid())
     {
+        shouldRenderPrompt = 0;
         tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
         render_prompt();
+        for(int i = 0; i < cmdLength; i++) printf("%c", cmd[i]);
         fflush(stdout);
     }
 }
@@ -107,12 +114,16 @@ int main ()
 
     useBuiltins();
 
-    char cmd[MAX_CMD_LENGTH];
+    shouldRenderPrompt = 1;
     while(!shouldExitShell)
     {
-        render_prompt();
-        fflush(stdout);
-        int cmdLength = 0;
+        if(shouldRenderPrompt)
+        {
+            render_prompt();
+            fflush(stdout);
+        }
+        shouldRenderPrompt = 1;
+        cmdLength = 0;
         while(1)
         {
             if(read(STDIN_FILENO, &cmd[cmdLength], 1) == -1)
@@ -156,10 +167,12 @@ int main ()
             if(cmd[cmdLength] == '\n')
             {
                 cmd[cmdLength] = '\0';
+                cmdLength = 0;
                 loadHistory();
                 recordInHistory(cmd);
                 parse(cmd);
                 saveHistory();
+                shouldRenderPrompt = 1;
                 break;
             }
             cmdLength++;
