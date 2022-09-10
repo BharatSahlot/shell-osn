@@ -1,4 +1,5 @@
 #include "logger.h"
+#include "core/io.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -24,7 +25,7 @@ void Log(int level, const char *format, ...)
     vsprintf(errBuf + 5, format, args);
 
     if(level == LOGL_ERROR) fprintf(stderr, "%s\033[0m", errBuf);
-    else printf("%s\033[0m", errBuf);
+    else print("%s\033[0m", errBuf);
 
     va_end(args);
 }

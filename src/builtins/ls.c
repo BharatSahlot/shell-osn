@@ -115,12 +115,12 @@ int isExecutable(const struct stat* st)
     return (st->st_mode & (S_IXUSR | S_IXGRP | S_IXOTH));
 }
 
-void printfItemColor(const char* item, const struct stat* st)
+void printItemColor(const char* item, const struct stat* st)
 {
-    if(S_ISDIR(st->st_mode)) printf(BOLD BLUE "%s" RESET, item);
-    else if(S_ISLNK(st->st_mode)) printf(BOLD CYAN "%s" RESET, item);
-    else if(isExecutable(st)) printf(BOLD GREEN "%s" RESET, item);
-    else printf("%s", item);
+    if(S_ISDIR(st->st_mode)) print(BOLD BLUE "%s" RESET, item);
+    else if(S_ISLNK(st->st_mode)) print(BOLD CYAN "%s" RESET, item);
+    else if(isExecutable(st)) print(BOLD GREEN "%s" RESET, item);
+    else print("%s", item);
 }
 
 // on success returns blocks occupied by the item
@@ -212,8 +212,8 @@ int lsItem(const char* path, int displayHiddenFiles, int displayExtraInfo)
                     continue;
                 }
 
-                printfItemColor(ptr, &st);
-                printf("\n");
+                printItemColor(ptr, &st);
+                print("\n");
             }
             return 0;
         }
@@ -230,10 +230,10 @@ int lsItem(const char* path, int displayHiddenFiles, int displayExtraInfo)
             totalBlocks += err;
             line++;
         }
-        printf("total %d\n", totalBlocks / 2);
+        print("total %d\n", totalBlocks / 2);
         for(int i = 0; i < items; i++)
         {
-            printf("%s\n", lines[i]);
+            print("%s\n", lines[i]);
         }
     } else
     {
@@ -241,7 +241,7 @@ int lsItem(const char* path, int displayHiddenFiles, int displayExtraInfo)
         {
             char line[MAX_LINE_LENGTH];
             getItemLine(path, line);
-            printf("%s\n", line);
+            print("%s\n", line);
         } else
         {
             const char* ptr = path + strlen(path) - 1;
@@ -252,8 +252,8 @@ int lsItem(const char* path, int displayHiddenFiles, int displayExtraInfo)
             }
             if(*ptr == '/') ++ptr;
 
-            printfItemColor(ptr, &st);
-            printf("\n");
+            printItemColor(ptr, &st);
+            print("\n");
         }
     }
     return 0;
@@ -332,8 +332,8 @@ int ls(int argc, const char **argv)
     qsort(temp, c, sizeof(temp[0]), cmp);
     for(int i = 0; i < c; i++)
     {
-        if(i || filesPrinted) printf("\n");
-        if(count > 1) printf("%s:\n", temp[i]);
+        if(i || filesPrinted) print("\n");
+        if(count > 1) print("%s:\n", temp[i]);
         strcpy(temp[i], makePathAbsolute(temp[i]));
         lsItem(temp[i], listHiddenItems, listExtraInfo);
     }

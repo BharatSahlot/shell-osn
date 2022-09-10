@@ -61,7 +61,7 @@ int jobs(int argc, const char **argv)
     for(int i = 0; i < count; i++)
     {
         const char* status = processes[i]->status == 1 ? "Stopped" : "Running";
-        printf("[%d] %s %s [%d]\n", processes[i]->id, status, processes[i]->name, processes[i]->pid);
+        print("[%d] %s %s [%d]\n", processes[i]->id, status, processes[i]->name, processes[i]->pid);
     }
     return 0;
 }

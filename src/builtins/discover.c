@@ -30,7 +30,7 @@ void printFilteredPath(const char* path, const char* target)
 
     int n = strlen(temp);
     if(temp[n - 1] == '/') temp[n - 1] = '\0';
-    printf("%s\n", temp);
+    print("%s\n", temp);
 }
 
 // absolute path of the directory

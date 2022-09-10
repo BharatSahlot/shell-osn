@@ -8,6 +8,6 @@ int pwd(int argc, const char **argv)
     {
         Log(LOGL_WARN, "pwd: too many arguements\n");
     }
-    printf("%s\n", currentPath);
+    print("%s\n", currentPath);
     return 0;
 }
