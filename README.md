@@ -1,6 +1,6 @@
 # Shell
 
-**Assignment 2 - Operating Systems And Networks, Monsoon 2022**
+**Assignment 2/3 - Operating Systems And Networks, Monsoon 2022**
 
 ### Building
 
@@ -50,6 +50,8 @@ Commands can be chained with `;` or `&`. `;` will run the previous command in fo
 - **discover**: `<target-dir> -d -f <filter>` Search for files/directories recursively in the given directory
 - **jobs**: `-r, -s` prints all stopped or running background jobs started by the shell
 - **sig**: `<index> <signal>` raises `<signal` signal for the job with index `<index>` in jobs list
+- **fg**: `<index>` brings the job with index `<index>` to the foreground and continues it if it is stopped
+- **bg**: `<index>` continues a background job with index `index` if it is stopped
 
 #### More info
 
