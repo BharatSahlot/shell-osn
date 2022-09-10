@@ -31,6 +31,7 @@ int sig(int argc, const char **argv)
     if(pid == -1)
     {
         Log(LOGL_ERROR, "sig: process with index %d not found\n", index);
+        return -1;
     }
 
     int sign = strtol(argv[2], &endptr, 10);
