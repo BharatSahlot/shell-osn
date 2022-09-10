@@ -53,7 +53,7 @@ void parse(char *cmd)
             st = cmd + i + 1;
         }
     }
-    if(st < cmd + n - 1)
+    if(st < cmd + n)
     {
         parseArgs(st);
         if(strcmp(argsBuf[0], "exit") == 0)

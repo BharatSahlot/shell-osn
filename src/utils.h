@@ -3,6 +3,8 @@
 
 #include <sys/types.h>
 
+int isDir(const char* path);
+
 // returns username if successfull else NULL
 const char* getUsernameFromId(uid_t uid);
 

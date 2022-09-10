@@ -4,6 +4,7 @@
 #include <pwd.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
 
@@ -12,6 +13,16 @@
 #include <stdio.h>
 
 char tempPathBuf[MAX_PATH_SIZE], tempPathBuf2[MAX_PATH_SIZE];
+
+int isDir(const char* path)
+{
+    static struct stat st;
+    if(stat(path, &st) == -1)
+    {
+        return -1;
+    }
+    return S_ISDIR(st.st_mode);
+}
 
 // returns username if successfull else NULL
 const char* getUsernameFromId(uid_t uid)

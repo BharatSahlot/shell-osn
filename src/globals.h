@@ -50,5 +50,6 @@ extern int lastCommandStatus;
 extern long int lastCommandTime;
 
 extern struct termios termiosAttr;
+extern struct termios defTermiosAttr;
 
 #endif
