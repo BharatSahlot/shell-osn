@@ -133,6 +133,11 @@ int main ()
             }
             char ch = cmd[cmdLength];
             switch (ch) {
+                case '\004': // eof
+                {
+                    killAllProcesses();
+                    return 0;
+                }
                 case '\x1b': // arrow keys
                 {
                     char buf[3];
@@ -174,7 +179,6 @@ int main ()
             cmdLength++;
         }
     }
-    signal(SIGCHLD, SIG_DFL);
     killAllProcesses();
     return 0;
 }
