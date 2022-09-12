@@ -65,6 +65,7 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
                 lastCommandStatus = 0;
                 print("\n%s with pid = %d stopped\n", cmd, pid);
                 addProcess(pid, cmd);
+                setProcessStatus(pid, 1);
             }
 
             lastCommandTime = e - s;

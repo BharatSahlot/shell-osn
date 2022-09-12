@@ -1,6 +1,7 @@
 #include "builtins.h"
 #include "../core/process_list.h"
 
+#include <termios.h>
 #include <errno.h>
 #include <signal.h>
 #include <string.h>
@@ -44,6 +45,7 @@ int fg(int argc, const char* argv[])
         return -1;
     }
 
+    tcsetattr(STDIN_FILENO, TCSANOW, &defTermiosAttr);
     tcsetpgrp(STDIN_FILENO, pid);
     if(kill(-pid, SIGCONT) == -1) // send the continue signal
     {
@@ -51,12 +53,25 @@ int fg(int argc, const char* argv[])
         LogPError("fg");
         return -1;
     }
-    time_t s = time(NULL);
-    waitpid(pid, &lastCommandStatus, 0);
-    time_t e = time(NULL);
-    lastCommandTime = e - s;
+
+    const char* name = getProcessNameByPID(pid);
     removeProcess(pid);
+
+    time_t s = time(NULL);
+    waitpid(pid, &lastCommandStatus, WUNTRACED);
+    time_t e = time(NULL);
+
+    if(WIFSTOPPED(lastCommandStatus))
+    {
+        lastCommandStatus = 0;
+        print("\n%s with pid = %d stopped\n", name, pid);
+        addProcess(pid, name);
+        setProcessStatus(pid, 1);
+    }
+
+    lastCommandTime = e - s;
     tcsetpgrp(STDIN_FILENO, getpid());
+    tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
 
     return 0;
 }
