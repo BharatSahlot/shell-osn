@@ -1,4 +1,5 @@
 #include "core/autocomplete.h"
+#include "core/io.h"
 #include "globals.h"
 #include "builtins/builtins.h"
 #include "core/execute.h"
@@ -34,8 +35,12 @@ struct termios termiosAttr, defTermiosAttr;
 int cmdLength = 0;
 char cmd[MAX_CMD_LENGTH];
 
+// TODO: fix multiple childs wait in zombie_handler by using while with WNOHANG
+
 void zombie_handler(int sig, siginfo_t* info, void* ucontext)
 {
+    const char* processName = getProcessNameByPID(info->si_pid);
+    if(processName == NULL) return;
     int status = 0;
     pid_t p = waitpid(info->si_pid, &status, WUNTRACED | WCONTINUED);
     if(p == -1)
@@ -52,7 +57,7 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
         case CLD_STOPPED: sta = "has stopped"; break;
         case CLD_CONTINUED: sta = "has continued"; break;
     }
-    const char* processName = getProcessNameByPID(p);
+    // const char* processName = getProcessNameByPID(p);
     if(processName != NULL)
     {
         print("\n%s with pid = %d %s\n", processName, info->si_pid, sta);
@@ -63,6 +68,7 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
             bgProcessesRunning--;
         }
     }
+
     if(tcgetpgrp(STDIN_FILENO) == getpid())
     {
         tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
@@ -100,7 +106,7 @@ int main ()
     }
 
     // ctrl-c should only exit child process not shell
-    // signal(SIGINT, SIG_IGN);
+    signal(SIGINT, SIG_IGN);
     signal(SIGTTOU, SIG_IGN);
     signal(SIGTTIN, SIG_IGN);
     signal(SIGQUIT, SIG_IGN);

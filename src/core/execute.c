@@ -1,5 +1,6 @@
 #include "execute.h"
 #include "../globals.h"
+#include "io.h"
 #include "process_list.h"
 
 #include <stdlib.h>
@@ -33,6 +34,7 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
     if(pid == 0)
     {
         setpgid(pid, pid);
+        signal(SIGINT, SIG_DFL);
         signal(SIGTTOU, SIG_DFL);
         signal(SIGTTIN, SIG_DFL);
         signal(SIGQUIT, SIG_DFL);
@@ -55,8 +57,16 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
         {
             tcsetpgrp(term, pid);
             time_t s = time(NULL);
-            waitpid(pid, &lastCommandStatus, 0);
+            waitpid(pid, &lastCommandStatus, WUNTRACED);
             time_t e = time(NULL);
+
+            if(WIFSTOPPED(lastCommandStatus))
+            {
+                lastCommandStatus = 0;
+                print("\n%s with pid = %d stopped\n", cmd, pid);
+                addProcess(pid, cmd);
+            }
+
             lastCommandTime = e - s;
             tcsetpgrp(term, getpid());
             tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
