@@ -35,40 +35,37 @@ struct termios termiosAttr, defTermiosAttr;
 int cmdLength = 0;
 char cmd[MAX_CMD_LENGTH];
 
-// TODO: fix multiple childs wait in zombie_handler by using while with WNOHANG
-
 void zombie_handler(int sig, siginfo_t* info, void* ucontext)
 {
-    const char* processName = getProcessNameByPID(info->si_pid);
-    if(processName == NULL) return;
     int status = 0;
-    pid_t p = waitpid(info->si_pid, &status, WUNTRACED | WCONTINUED);
-    if(p == -1)
+    pid_t p = -1;
+    while((p = waitpid(-1, &status, WUNTRACED | WNOHANG)) > 0)
     {
-        // dont log error when foreground process exits
-        if(errno != ECHILD) LogPError("zombie");
-        return;
-    }
-    lastCommandStatus = 0;
-    const char* sta = "exited normally";
-    switch (info->si_code) {
-        case CLD_KILLED: lastCommandStatus = -1; sta = "was killed"; break;
-        case CLD_DUMPED: lastCommandStatus = -1; sta = "exited abnormally"; break;
-        case CLD_STOPPED: sta = "has stopped"; break;
-        case CLD_CONTINUED: sta = "has continued"; break;
-    }
-    // const char* processName = getProcessNameByPID(p);
-    if(processName != NULL)
-    {
-        print("\n%s with pid = %d %s\n", processName, info->si_pid, sta);
-        setProcessStatus(p, info->si_code == CLD_STOPPED);
-        if(info->si_code != CLD_STOPPED && info->si_code != CLD_CONTINUED)
+        const char* processName = getProcessNameByPID(p);
+        if(processName == NULL) continue;
+
+        lastCommandStatus = 0;
+        const char* sta = "exited abnormally";
+        if(WIFEXITED(status))
         {
-            removeProcess(p);
-            bgProcessesRunning--;
+            sta = "exited normally";
+            lastCommandStatus = WEXITSTATUS(status);
+        } else if(WIFSTOPPED(status))
+        {
+            sta = "suspended normally";
+            lastCommandStatus = WSTOPSIG(status);
+        }
+        if(processName != NULL)
+        {
+            print("\n%s with pid = %d %s\n", processName, p, sta);
+            setProcessStatus(p, WIFSTOPPED(status) ? 1 : 0);
+            if(!WIFSTOPPED(status))
+            {
+                removeProcess(p);
+                bgProcessesRunning--;
+            }
         }
     }
-
     if(tcgetpgrp(STDIN_FILENO) == getpid())
     {
         tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
