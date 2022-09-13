@@ -29,7 +29,6 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
     }
 
     int term = STDIN_FILENO;
-    pid_t ppid = getpid();
     pid_t pid = fork();
     if(pid == 0)
     {
@@ -44,10 +43,8 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
             tcsetpgrp(term, pid);
         }
         execvp(cmd, (char* const*)argv);
-        LogPError("%s", cmd); // child prints the error
-        lastCommandStatus = -1;
-        tcsetpgrp(term, ppid);
-        exit(-1);
+        LogPError("\n%s", cmd); // child prints the error
+        exit(EXIT_FAILURE);
     } else if(pid != -1)
     {
         tcsetattr(STDIN_FILENO, TCSANOW, &defTermiosAttr);
@@ -70,11 +67,11 @@ int execute(int executeInBackground, const char *cmd, int argc, const char *argv
 
             lastCommandTime = e - s;
             tcsetpgrp(term, getpid());
-            tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
+            tcsetattr(STDIN_FILENO, TCSAFLUSH, &termiosAttr);
         } else
         {
             int id = addProcess(pid, cmd);
-            tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
+            tcsetattr(STDIN_FILENO, TCSAFLUSH, &termiosAttr);
             print("[%d] %d\n", id, pid);
         }
         return lastCommandStatus;

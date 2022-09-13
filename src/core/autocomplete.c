@@ -45,6 +45,8 @@ int autocomplete(int n, char *buf)
         item = readdir(dir);
     }
 
+    if(lines == 0) return n;
+
     if(lines == 1)
     {
         strcpy(buf, lastItem);
@@ -70,6 +72,49 @@ int autocomplete(int n, char *buf)
         fflush(stdout);
         return ln + n;
     }
+
+    int found = 0;
+    static char tmp[MAX_PATH_SIZE];
+    tmp[0] = '\0';
+
+    seekdir(dir, 0);
+    item = readdir(dir);
+    while(item != NULL)
+    {
+        if(strncmp(buf, item->d_name, n) != 0)
+        {
+            item = readdir(dir);
+            continue;
+        }
+        if(!found)
+        {
+            strcpy(tmp, item->d_name);
+            found = 1;
+            item = readdir(dir);
+            continue;
+        }
+
+        int n1 = strlen(item->d_name), n2 = strlen(tmp);
+        int mn = n1 < n2 ? n1 : n2;
+        for(int i = n; i < mn; i++)
+        {
+            if(item->d_name[i] != tmp[i])
+            {
+                tmp[i] = '\0';
+                break;
+            }
+        }
+        item = readdir(dir);
+    }
+    strcpy(buf, tmp);
+    print("\x1b[%dD", n);
+    n = strlen(tmp);
+
+    for(int i = 0; i < n; i++)
+    {
+        print("%c", buf[i]);
+    }
+    fflush(stdout);
 
     seekdir(dir, 0);
     item = readdir(dir);

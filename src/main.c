@@ -21,6 +21,7 @@
 #include <wait.h>
 #include <assert.h>
 #include <termios.h>
+#include <ctype.h>
 
 int commandCount;
 Command commandArr[15];
@@ -46,7 +47,11 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
 
         lastCommandStatus = 0;
         const char* sta = "exited abnormally";
-        if(WIFEXITED(status))
+        if(WIFSIGNALED(status))
+        {
+            sta = "was killed";
+            lastCommandStatus = WTERMSIG(status);
+        } else if(WIFEXITED(status))
         {
             sta = "exited normally";
             lastCommandStatus = WEXITSTATUS(status);
@@ -160,7 +165,7 @@ int main ()
                 }
                 default:
                 {
-                    print("%c", cmd[cmdLength]);
+                    if(cmd[cmdLength] == '\n' || !iscntrl(cmd[cmdLength])) print("%c", cmd[cmdLength]);
                 }
             }
             if(cmd[cmdLength] == '\n')
@@ -173,9 +178,10 @@ int main ()
                 saveHistory();
                 break;
             }
-            cmdLength++;
+            if(cmd[cmdLength] == '\n' || !iscntrl(cmd[cmdLength])) cmdLength++;
         }
     }
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &defTermiosAttr);
     killAllProcesses();
     return 0;
 }
