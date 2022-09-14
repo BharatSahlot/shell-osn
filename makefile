@@ -10,6 +10,7 @@ objects := src/main.o src/utils.o src/logger.o \
 		   src/core/execute.o src/core/parse.o src/core/prompt.o \
 		   src/core/history.o src/core/process_list.o \
 		   src/core/autocomplete.o src/core/io.o \
+		   src/core/pipeline.o
 
 all: $(objects) src/globals.h
 	$(CC) $(CFLAGS) $(objects) -o batak

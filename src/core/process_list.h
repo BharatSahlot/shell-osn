@@ -1,6 +1,7 @@
 #ifndef PROCESS_LIST_H
 #define PROCESS_LIST_H
 
+#include "pipeline.h"
 #include <sys/types.h>
 
 typedef struct Process Process;
@@ -8,6 +9,7 @@ struct Process
 {
     int isValid; // reuse same instead of free
     Process* next;
+    PipelineJob job;
     pid_t pid;
     char name[100];
     int id;
