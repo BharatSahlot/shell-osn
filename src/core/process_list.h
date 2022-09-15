@@ -9,20 +9,21 @@ struct Process
 {
     int isValid; // reuse same instead of free
     Process* next;
-    PipelineJob job;
-    pid_t pid;
-    char name[100];
+    PipelineJob* job;
     int id;
     int status;
 };
 
-int addProcess(pid_t pid, const char name[]);
+int addProcess(PipelineJob* job);
 void removeProcess(pid_t pid);
 void killAllProcesses();
 
 const Process* getProcessListRoot();
 
 const char* getProcessNameByPID(pid_t pid);
+
+PipelineJob* getPipelineJobByPID(pid_t pid);
+PipelineJob* getPipelineJobByID(int id);
 
 // returns pid of process at index `index` in the linked list
 pid_t getProcessPID(int index);

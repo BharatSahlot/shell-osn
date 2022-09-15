@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <stdlib.h>
 
+// TODO: make sure pipelined background jobs dont get sigcont
 int bg(int argc, const char* argv[])
 {
     if(argc < 2)

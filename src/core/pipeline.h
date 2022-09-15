@@ -30,5 +30,6 @@ struct PipelineJob
 };
 
 PipelineJob* parsePipeline(char* cmd);
+void cleanPipeline(PipelineJob* root);
 
 #endif

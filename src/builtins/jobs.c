@@ -11,7 +11,7 @@ int processCmp(const void* _a, const void* _b)
 {
     const Process* a = (const Process*)_a;
     const Process* b = (const Process*)_b;
-    return strcmp(a->name, b->name);
+    return strcmp(a->job->args[0], b->job->args[0]);
 }
 
 int jobs(int argc, const char **argv)
@@ -61,7 +61,7 @@ int jobs(int argc, const char **argv)
     for(int i = 0; i < count; i++)
     {
         const char* status = processes[i]->status == 1 ? "Stopped" : "Running";
-        print("[%d] %s %s [%d]\n", processes[i]->id, status, processes[i]->name, processes[i]->pid);
+        print("[%d] %s %s [%d]\n", processes[i]->id, status, processes[i]->job->args[0], processes[i]->job->pid);
     }
     return 0;
 }

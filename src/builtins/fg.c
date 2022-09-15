@@ -1,5 +1,6 @@
 #include "builtins.h"
 #include "../core/process_list.h"
+#include "../core/execute.h"
 
 #include <termios.h>
 #include <errno.h>
@@ -45,33 +46,62 @@ int fg(int argc, const char* argv[])
         return -1;
     }
 
+    // tcsetattr(STDIN_FILENO, TCSANOW, &defTermiosAttr);
+    // tcsetpgrp(STDIN_FILENO, pid);
+    // if(kill(-pid, SIGCONT) == -1) // send the continue signal
+    // {
+    //     tcsetpgrp(STDIN_FILENO, getpid());
+    //     LogPError("fg");
+    //     return -1;
+    // }
+
+    int stdin = dup(STDIN_FILENO);
+    int stdout = dup(STDOUT_FILENO);
+
+    PipelineJob* pipelineJob = getPipelineJobByPID(pid);
+    removeProcess(pid);
+
+    PipelineJob* job = pipelineJob;
+
+    if(job->in != -1)
+    {
+        dup2(job->in, STDIN_FILENO);
+        close(job->in);
+    }
+
+    if(job->fd[1] != -1)
+    {
+        dup2(job->fd[1], STDOUT_FILENO);
+        // close(job->fd[1]);
+    }
+
     tcsetattr(STDIN_FILENO, TCSANOW, &defTermiosAttr);
     tcsetpgrp(STDIN_FILENO, pid);
-    if(kill(-pid, SIGCONT) == -1) // send the continue signal
+    if(kill(-job->pid, SIGCONT) == -1)
     {
+        cleanPipeline(pipelineJob);
         tcsetpgrp(STDIN_FILENO, getpid());
         LogPError("fg");
         return -1;
     }
 
-    const char* name = getProcessNameByPID(pid);
-    removeProcess(pid);
-
-    time_t s = time(NULL);
+    time_t start = time(NULL);
     waitpid(pid, &lastCommandStatus, WUNTRACED);
-    time_t e = time(NULL);
+    time_t end = time(NULL);
+    lastCommandTime += end - start;
 
-    if(WIFSTOPPED(lastCommandStatus))
+    dup2(stdout, STDIN_FILENO);
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
+    tcsetpgrp(STDIN_FILENO, getpid());
+
+    job = job->next;
+
+    if(job == NULL)
     {
-        lastCommandStatus = 0;
-        print("\n%s with pid = %d stopped\n", name, pid);
-        addProcess(pid, name);
-        setProcessStatus(pid, 1);
+        dup2(stdin, STDIN_FILENO);
+        return 0;
     }
 
-    lastCommandTime = e - s;
-    tcsetpgrp(STDIN_FILENO, getpid());
-    tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
-
-    return 0;
+    return executePipeline(0, job);
 }

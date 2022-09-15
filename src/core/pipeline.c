@@ -2,6 +2,32 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+
+void cleanPipeline(PipelineJob* root)
+{
+    PipelineJob* job = root;
+    while(job->next != NULL)
+    {
+        if(job->prev != NULL)
+        {
+            if(job->fd[0] != -1) close(job->fd[0]);
+            if(job->fd[1] != -1) close(job->fd[1]);
+
+            free(job->prev);
+            job->prev = NULL;
+        }
+        job = job->next;
+    }
+    if(job->prev != NULL)
+    {
+        if(job->fd[0] != -1) close(job->fd[0]);
+        if(job->fd[1] != -1) close(job->fd[1]);
+        free(job->prev);
+        job->prev = NULL;
+    }
+    free(job);
+}
 
 PipelineJob* makePipelineJob()
 {
@@ -112,7 +138,7 @@ PipelineJob* parsePipeline(char *cmd)
         cur = makePipelineJob();
         if(root == NULL) root = cur;
 
-        strcpy(cur->cmd, cmd);
+        strcpy(cur->cmd, str);
         if(prev) prev->next = cur;
         cur->prev = prev;
         cur->next = NULL;
