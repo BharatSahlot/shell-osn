@@ -44,7 +44,7 @@ void parse(char *cmd)
                 st = cmd + i + 1;
                 continue;
             }
-            executePipeline(1, rootJob);
+            executePipeline(1, rootJob, 0);
             st = cmd + i + 1;
         } else if(cmd[i] == ';')
         {
@@ -55,13 +55,13 @@ void parse(char *cmd)
                 st = cmd + i + 1;
                 continue;
             }
-            executePipeline(0, rootJob);
+            executePipeline(0, rootJob, 0);
             st = cmd + i + 1;
         }
     }
     if(st < cmd + n)
     {
         PipelineJob* rootJob = parsePipeline(st);
-        if(rootJob != NULL) executePipeline(0, rootJob);
+        if(rootJob != NULL) executePipeline(0, rootJob, 0);
     }
 }

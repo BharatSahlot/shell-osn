@@ -86,7 +86,6 @@
 int executeJob(int executeInBackground, PipelineJob* job)
 {
     pid_t p = fork();
-    job->pid = getpid();
     if(p == 0)
     {
         setpgid(p, p);
@@ -131,6 +130,7 @@ int executeJob(int executeInBackground, PipelineJob* job)
         exit(EXIT_FAILURE);
     } else
     {
+        job->pid = p;
         setpgid(p, p);
         lastCommandStatus = 0;
 
@@ -154,10 +154,11 @@ int executeJob(int executeInBackground, PipelineJob* job)
     return lastCommandStatus;
 }
 
-int executePipeline(int executeInBackground, PipelineJob* pipelineJob)
+int executePipeline(int executeInBackground, PipelineJob* pipelineJob, int elapsed)
 {
     if(!executeInBackground && pipelineJob->next == NULL)
     {
+        lastCommandTime = elapsed;
         for(int i = 0; i < commandCount; i++)
         {
             if(strcmp(commandArr[i].cmd, pipelineJob->args[0]) == 0)
@@ -179,7 +180,7 @@ int executePipeline(int executeInBackground, PipelineJob* pipelineJob)
     int stdin = dup(STDIN_FILENO);
     int stdout = dup(STDOUT_FILENO);
 
-    lastCommandTime = 0;
+    lastCommandTime = elapsed;
     lastCommandStatus = 0;
     PipelineJob* job = pipelineJob;
     while(job != NULL)

@@ -55,25 +55,20 @@ int fg(int argc, const char* argv[])
     //     return -1;
     // }
 
-    int stdin = dup(STDIN_FILENO);
-    int stdout = dup(STDOUT_FILENO);
+    // int stdin = dup(STDIN_FILENO);
+    // int stdout = dup(STDOUT_FILENO);
 
     PipelineJob* pipelineJob = getPipelineJobByPID(pid);
     removeProcess(pid);
 
     PipelineJob* job = pipelineJob;
 
-    if(job->in != -1)
-    {
-        dup2(job->in, STDIN_FILENO);
-        close(job->in);
-    }
-
-    if(job->fd[1] != -1)
-    {
-        dup2(job->fd[1], STDOUT_FILENO);
-        // close(job->fd[1]);
-    }
+    // while(job != NULL)
+    // {
+    //     print("job [%s] with pid [%d]\n", job->args[0], job->pid);
+    //     job = job->next;
+    // }
+    // job = pipelineJob;
 
     tcsetattr(STDIN_FILENO, TCSANOW, &defTermiosAttr);
     tcsetpgrp(STDIN_FILENO, pid);
@@ -86,22 +81,34 @@ int fg(int argc, const char* argv[])
     }
 
     time_t start = time(NULL);
-    waitpid(pid, &lastCommandStatus, WUNTRACED);
+    if(waitpid(job->pid, &lastCommandStatus, WUNTRACED) < 0)
+    {
+        tcsetattr(STDIN_FILENO, TCSAFLUSH, &termiosAttr);
+        tcsetpgrp(STDIN_FILENO, getpid());
+        LogPError("waitpid");
+        return -1;
+    }
     time_t end = time(NULL);
     lastCommandTime += end - start;
 
-    dup2(stdout, STDIN_FILENO);
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &termiosAttr);
     tcsetpgrp(STDIN_FILENO, getpid());
+
+    if(WIFSTOPPED(lastCommandStatus))
+    {
+        print("\n%s with pid = %d stopped\n", job->args[0], job->pid);
+        addProcess(job);
+        setProcessStatus(job->pid, 1);
+        return 0;
+    } else if(WIFSIGNALED(lastCommandStatus))
+    {
+        cleanPipeline(pipelineJob);
+        return -1;
+    }
 
     job = job->next;
 
-    if(job == NULL)
-    {
-        dup2(stdin, STDIN_FILENO);
-        return 0;
-    }
+    if(job == NULL) return lastCommandStatus;
 
-    return executePipeline(0, job);
+    return executePipeline(0, job, lastCommandTime);
 }
