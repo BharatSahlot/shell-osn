@@ -1,5 +1,6 @@
 #include "process_list.h"
 #include "../globals.h"
+#include "pipeline.h"
 
 #include <signal.h>
 #include <stdlib.h>
@@ -24,24 +25,44 @@ Process* next(Process* process)
     return process;
 }
 
-Process* init_process(pid_t pid, const char name[])
+PipelineJob* getPipelineJobByPID(pid_t pid)
+{
+    Process* process = next(root);
+    while(process != NULL)
+    {
+        if(process->isValid && process->job->pid == pid) return process->job;
+        process = next(process);
+    }
+    return NULL;
+}
+
+PipelineJob* getPipelineJobByID(int id)
+{
+    Process* process = next(root);
+    while(process != NULL)
+    {
+        if(process->isValid && process->id == id) return process->job;
+        process = next(process);
+    }
+    return NULL;
+}
+
+Process* init_process(PipelineJob* job)
 {
     Process* process = (Process*) malloc(sizeof(Process));
-    process->pid = pid;
     process->next = NULL;
-    process->id = -1;
+    process->id = 0;
     process->status = 0;
     process->isValid = 1;
-    memset(process->name, 0, sizeof(process->name));
-    strcpy(process->name, name);
+    process->job = job;
     return process;
 }
 
-int addProcess(pid_t pid, const char name[])
+int addProcess(PipelineJob* job)
 {
     if(root == NULL)
     {
-        root = init_process(-1, "root");
+        root = init_process(NULL);
     }
 
     Process* last = root;
@@ -49,8 +70,7 @@ int addProcess(pid_t pid, const char name[])
     {
         if(!last->isValid)
         {
-            last->pid = pid;
-            strcpy(last->name, name);
+            last->job = job;
             last->isValid = 1;
             last->status = 0;
             return last->id;
@@ -59,14 +79,13 @@ int addProcess(pid_t pid, const char name[])
     }
     if(!last->isValid)
     {
-        last->pid = pid;
-        strcpy(last->name, name);
+        last->job = job;
         last->isValid = 1;
         last->status = 0;
         return last->id;
     }
 
-    Process* process = init_process(pid, name);
+    Process* process = init_process(job);
     process->id = last->id + 1;
     last->next = process;
     return process->id;
@@ -79,7 +98,7 @@ void removeProcess(pid_t pid)
     Process* process = next(root);
     while(process != NULL)
     {
-        if(process->pid == pid)
+        if(process->job->pid == pid)
         {
             process->isValid = 0;
             return;
@@ -95,7 +114,7 @@ void killAllProcesses()
     Process* process = root->next, *last = root;
     while(process != NULL)
     {
-        if(process->isValid && process->pid > 0) kill(process->pid, SIGKILL);
+        if(process->isValid && process->job->pid > 0) kill(process->job->pid, SIGKILL);
         free(last);
         last = process;
         process = process->next;
@@ -111,7 +130,7 @@ const char* getProcessNameByPID(pid_t pid)
     Process* process = next(root);
     while(process != NULL)
     {
-        if(process->pid == pid) return process->name;
+        if(process->job->pid == pid) return process->job->args[0];
         process = next(process);
     }
     return NULL;
@@ -124,7 +143,7 @@ pid_t getProcessPID(int index)
     Process* process = next(root);
     while(process != NULL)
     {
-        if(process->id == index) return process->pid;
+        if(process->id == index) return process->job->pid;
         process = next(process);
     }
     return -1;
@@ -134,10 +153,10 @@ void setProcessStatus(pid_t pid, int status)
 {
     if(root == NULL) return;
     
-    Process* process = root;
+    Process* process = next(root);
     while(process != NULL)
     {
-        if(process->pid == pid)
+        if(process->job->pid == pid)
         {
             process->status = status;
             break;

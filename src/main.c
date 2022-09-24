@@ -36,7 +36,7 @@ struct termios termiosAttr, defTermiosAttr;
 int cmdLength = 0;
 char cmd[MAX_CMD_LENGTH];
 
-void zombie_handler(int sig, siginfo_t* info, void* ucontext)
+void zombie_handler()
 {
     int status = 0;
     pid_t p = -1;
@@ -99,7 +99,7 @@ int main ()
 
     struct sigaction st;
     st.sa_sigaction = zombie_handler;
-    st.sa_flags = SA_SIGINFO | SA_RESTART;
+    st.sa_flags = SA_RESTART;
     sigemptyset(&st.sa_mask);
     if(sigaction(SIGCHLD, &st, NULL) == -1)
     {

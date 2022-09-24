@@ -1,5 +1,6 @@
 #include "builtins.h"
 #include "../core/process_list.h"
+#include "../core/execute.h"
 
 #include <termios.h>
 #include <errno.h>
@@ -45,33 +46,57 @@ int fg(int argc, const char* argv[])
         return -1;
     }
 
+    PipelineJob* pipelineJob = getPipelineJobByPID(pid);
+    removeProcess(pid);
+
+    PipelineJob* job = pipelineJob;
+
+    // while(job != NULL)
+    // {
+    //     print("job [%s] with pid [%d]\n", job->args[0], job->pid);
+    //     job = job->next;
+    // }
+    // job = pipelineJob;
+
     tcsetattr(STDIN_FILENO, TCSANOW, &defTermiosAttr);
     tcsetpgrp(STDIN_FILENO, pid);
-    if(kill(-pid, SIGCONT) == -1) // send the continue signal
+    if(kill(-job->pid, SIGCONT) == -1)
     {
+        cleanPipeline(pipelineJob);
         tcsetpgrp(STDIN_FILENO, getpid());
         LogPError("fg");
         return -1;
     }
 
-    const char* name = getProcessNameByPID(pid);
-    removeProcess(pid);
+    time_t start = time(NULL);
+    if(waitpid(job->pid, &lastCommandStatus, WUNTRACED) < 0)
+    {
+        tcsetattr(STDIN_FILENO, TCSAFLUSH, &termiosAttr);
+        tcsetpgrp(STDIN_FILENO, getpid());
+        LogPError("waitpid");
+        return -1;
+    }
+    time_t end = time(NULL);
+    lastCommandTime += end - start;
 
-    time_t s = time(NULL);
-    waitpid(pid, &lastCommandStatus, WUNTRACED);
-    time_t e = time(NULL);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &termiosAttr);
+    tcsetpgrp(STDIN_FILENO, getpid());
 
     if(WIFSTOPPED(lastCommandStatus))
     {
-        lastCommandStatus = 0;
-        print("\n%s with pid = %d stopped\n", name, pid);
-        addProcess(pid, name);
-        setProcessStatus(pid, 1);
+        print("\n%s with pid = %d stopped\n", job->args[0], job->pid);
+        addProcess(job);
+        setProcessStatus(job->pid, 1);
+        return 0;
+    } else if(WIFSIGNALED(lastCommandStatus))
+    {
+        cleanPipeline(pipelineJob);
+        return -1;
     }
 
-    lastCommandTime = e - s;
-    tcsetpgrp(STDIN_FILENO, getpid());
-    tcsetattr(STDIN_FILENO, TCSANOW, &termiosAttr);
+    job = job->next;
 
-    return 0;
+    if(job == NULL) return lastCommandStatus;
+
+    return executePipeline(0, job, lastCommandTime);
 }

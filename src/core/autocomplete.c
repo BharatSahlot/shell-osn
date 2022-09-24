@@ -10,13 +10,6 @@
 
 int autocomplete(int n, char *buf)
 {
-    DIR* dir = opendir(currentPath);
-    if(dir == NULL)
-    {
-        LogPError("dsa");
-        return n;
-    }
-
     char* origBuf = buf;
     int ln = 0;
     for(int i = n - 1; i >= 0; i--)
@@ -28,6 +21,38 @@ int autocomplete(int n, char *buf)
             buf = &buf[i + 1];
             break;
         }
+    }
+
+    int changeOpenDir = 0;
+    static char temp[MAX_PATH_SIZE], temp2[MAX_PATH_SIZE];
+    memset(temp, 0, sizeof(temp));
+    memset(temp2, 0, sizeof(temp2));
+    // strcpy(temp, currentPath);
+    // strcpy(temp2, currentPath);
+    for(int i = n - 1; i >= 0; i--)
+    {
+        if(buf[i] == '/')
+        {
+            changeOpenDir = 1;
+            strncpy(temp, buf, i);
+            ln += i + 1;
+            n -= i + 1;
+            buf = &buf[i + 1];
+            break;
+        }
+    }
+
+    DIR* dir = NULL;
+    if(changeOpenDir)
+    {
+        strcpy(temp2, makePathAbsolute(temp));
+        dir = opendir(makePathAbsolute(temp));
+    }
+    else dir = opendir(currentPath);
+    if(dir == NULL)
+    {
+        // LogPError("dsa");
+        return ln + n;
     }
 
     int lines = 0;
@@ -45,7 +70,7 @@ int autocomplete(int n, char *buf)
         item = readdir(dir);
     }
 
-    if(lines == 0) return n;
+    if(lines == 0) return ln + n;
 
     if(lines == 1)
     {
@@ -55,7 +80,9 @@ int autocomplete(int n, char *buf)
         print("\x1b[%dD", n);
         n = strlen(lastItem);
         
-        int r = isDir(lastItem);
+        strcpy(temp2, makePathAbsolute(temp));
+        joinPaths(temp2, lastItem);
+        int r = isDir(temp2);
         if(r == 1) // dont do just if(r), isDir can return -1
         {
             buf[n++] = '/';
