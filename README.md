@@ -38,6 +38,18 @@ Commands can be chained with `;` or `&`. `;` will run the previous command in fo
 
 `tab` can be pressed to trigger autocompletion.
 
+#### Pipe And Redirection
+
+Processes can have their input output redirected to files or to another process. You can pipe output of one process to another by using `|` and it can be chained any number of times.
+
+You can take input from a file for the first process in a pipeline and redirect the last processes output to a file.
+
+- `cat file.txt | wc`
+- `ls | cat | wc`
+- `cat < file.txt | wc > out.txt`
+
+**Note:** For now pipelines cannot run in background. They can be suspended and continued but they cannot run in background. Attempting to do so will result in a parsing error.
+
 #### Inbuilt Commands
 
 - **exit**: exits the shell
