@@ -116,9 +116,6 @@ int executePipeline(int executeInBackground, PipelineJob* pipelineJob, int elaps
         return -1;
     }
 
-    // int stdin = dup(STDIN_FILENO);
-    // int stdout = dup(STDOUT_FILENO);
-
     lastCommandTime = elapsed;
     lastCommandStatus = 0;
     PipelineJob* job = pipelineJob;
@@ -129,8 +126,6 @@ int executePipeline(int executeInBackground, PipelineJob* pipelineJob, int elaps
             if(pipe(job->fd) < 0)
             {
                 cleanPipeline(pipelineJob);
-                // dup2(stdin, STDIN_FILENO);
-                // dup2(stdout, STDOUT_FILENO);
                 LogPError("pipe error");
                 return -1;
             }
@@ -179,10 +174,8 @@ int executePipeline(int executeInBackground, PipelineJob* pipelineJob, int elaps
             close(job->fd[1]);
             job->fd[1] = -1;
         }
-        // dup2(stdout, STDOUT_FILENO);
         job = job->next;
     }
-    // dup2(stdin, STDIN_FILENO);
     cleanPipeline(pipelineJob);
     return 0;
 }
