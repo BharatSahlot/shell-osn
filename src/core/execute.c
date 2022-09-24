@@ -176,6 +176,6 @@ int executePipeline(int executeInBackground, PipelineJob* pipelineJob, int elaps
         }
         job = job->next;
     }
-    cleanPipeline(pipelineJob);
+    // cleanPipeline(pipelineJob);
     return 0;
 }

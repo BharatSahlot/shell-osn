@@ -42,7 +42,6 @@ void zombie_handler(int sig, siginfo_t* info, void* ucontext)
     pid_t p = -1;
     while((p = waitpid(-1, &status, WUNTRACED | WNOHANG)) > 0)
     {
-        print("halo\n");
         const char* processName = getProcessNameByPID(p);
         if(processName == NULL) continue;
 

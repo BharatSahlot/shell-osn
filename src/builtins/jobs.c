@@ -9,8 +9,8 @@ static const Process* processes[1000];
 
 int processCmp(const void* _a, const void* _b)
 {
-    const Process* a = (const Process*)_a;
-    const Process* b = (const Process*)_b;
+    const Process* a = *(const Process**)_a;
+    const Process* b = *(const Process**)_b;
     return strcmp(a->job->args[0], b->job->args[0]);
 }
 

@@ -51,7 +51,7 @@ Process* init_process(PipelineJob* job)
 {
     Process* process = (Process*) malloc(sizeof(Process));
     process->next = NULL;
-    process->id = -1;
+    process->id = 0;
     process->status = 0;
     process->isValid = 1;
     process->job = job;
