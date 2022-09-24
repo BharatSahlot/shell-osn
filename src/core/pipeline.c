@@ -74,6 +74,7 @@ int parseJob(PipelineJob* job)
                 Log(LOGL_ERROR, "parse error: found > or >> more than once\n");
                 return -1;
             }
+            job->args[i] = NULL;
             outFile = job->args[i + 1];
             outputMode = 1;
             i++;
@@ -90,6 +91,7 @@ int parseJob(PipelineJob* job)
                 Log(LOGL_ERROR, "parse error: found > or >> more than once\n");
                 return -1;
             }
+            job->args[i] = NULL;
             outFile = job->args[i + 1];
             outputMode = 2;
             i++;
@@ -106,6 +108,7 @@ int parseJob(PipelineJob* job)
                 Log(LOGL_ERROR, "parse error: found < more than once\n");
                 return -1;
             }
+            job->args[i] = NULL;
             inFile = job->args[i + 1];
             inputMode = 1;
             i++;

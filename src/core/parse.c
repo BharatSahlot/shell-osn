@@ -6,22 +6,6 @@
 #include <string.h>
 #include <stdio.h>
 
-// int argc = 0;
-// const char* argsBuf[MAX_ARGS];
-//
-// const char** parseArgs(char* cmd)
-// {
-//     argc = 0;
-//     char* p = strtok(cmd, " \t\n");
-//     while(p != NULL)
-//     {
-//         argsBuf[argc++] = p;
-//         p = strtok(NULL, " \t\n");
-//     }
-//     argsBuf[argc] = NULL; // null terminate args list, usefull for sys calls like execve
-//     return argsBuf;
-// }
-//
 void parse(char *cmd)
 {
     int n = strlen(cmd);

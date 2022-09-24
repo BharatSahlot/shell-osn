@@ -45,7 +45,7 @@ int autocomplete(int n, char *buf)
         item = readdir(dir);
     }
 
-    if(lines == 0) return n;
+    if(lines == 0) return ln + n;
 
     if(lines == 1)
     {

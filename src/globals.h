@@ -24,6 +24,7 @@
 
 typedef struct
 {
+    int runInPipe;
     const char* cmd;
     int (*func) (int argc, const char* argv[]);
 } Command;

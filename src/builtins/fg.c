@@ -46,18 +46,6 @@ int fg(int argc, const char* argv[])
         return -1;
     }
 
-    // tcsetattr(STDIN_FILENO, TCSANOW, &defTermiosAttr);
-    // tcsetpgrp(STDIN_FILENO, pid);
-    // if(kill(-pid, SIGCONT) == -1) // send the continue signal
-    // {
-    //     tcsetpgrp(STDIN_FILENO, getpid());
-    //     LogPError("fg");
-    //     return -1;
-    // }
-
-    // int stdin = dup(STDIN_FILENO);
-    // int stdout = dup(STDOUT_FILENO);
-
     PipelineJob* pipelineJob = getPipelineJobByPID(pid);
     removeProcess(pid);
 

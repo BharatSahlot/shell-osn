@@ -4,7 +4,9 @@
 #include "pipeline.h"
 #include "process_list.h"
 
+#include <fcntl.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <termios.h>
 #include <signal.h>
@@ -13,75 +15,6 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/wait.h>
-
-// int execute(int executeInBackground, const char *cmd, int argc, const char *argv[])
-// {
-//     if(!executeInBackground)
-//     {
-//         for(int i = 0; i < commandCount; i++)
-//         {
-//             if(strcmp(commandArr[i].cmd, cmd) == 0)
-//             {
-//                 lastCommandStatus = 0;
-//                 int status = commandArr[i].func(argc, argv);
-//                 lastCommandStatus = status;
-//                 return status;
-//             }
-//         }
-//     }
-//
-//     int term = STDIN_FILENO;
-//     pid_t pid = fork();
-//     if(pid == 0)
-//     {
-//         setpgid(pid, pid);
-//         signal(SIGINT, SIG_DFL);
-//         signal(SIGTTOU, SIG_DFL);
-//         signal(SIGTTIN, SIG_DFL);
-//         signal(SIGQUIT, SIG_DFL);
-//         signal(SIGTSTP, SIG_DFL);
-//         if(!executeInBackground)
-//         {
-//             tcsetpgrp(term, pid);
-//         }
-//         execvp(cmd, (char* const*)argv);
-//         LogPError("\n%s", cmd); // child prints the error
-//         exit(EXIT_FAILURE);
-//     } else if(pid != -1)
-//     {
-//         tcsetattr(STDIN_FILENO, TCSANOW, &defTermiosAttr);
-//         setpgid(pid, pid);
-//         lastCommandStatus = 0;
-//         if(!executeInBackground)
-//         {
-//             tcsetpgrp(term, pid);
-//             time_t s = time(NULL);
-//             waitpid(pid, &lastCommandStatus, WUNTRACED);
-//             time_t e = time(NULL);
-//
-//             if(WIFSTOPPED(lastCommandStatus))
-//             {
-//                 lastCommandStatus = 0;
-//                 print("\n%s with pid = %d stopped\n", cmd, pid);
-//                 addProcess(pid, cmd);
-//                 setProcessStatus(pid, 1);
-//             }
-//
-//             lastCommandTime = e - s;
-//             tcsetpgrp(term, getpid());
-//             tcsetattr(STDIN_FILENO, TCSAFLUSH, &termiosAttr);
-//         } else
-//         {
-//             int id = addProcess(pid, cmd);
-//             tcsetattr(STDIN_FILENO, TCSAFLUSH, &termiosAttr);
-//             print("[%d] %d\n", id, pid);
-//         }
-//         return lastCommandStatus;
-//     }
-//     lastCommandStatus = -1;
-//     Log(LOGL_ERROR, "exec: %s not an inbuilt command\n", cmd);
-//     return -1;
-// }
 
 int executeJob(int executeInBackground, PipelineJob* job)
 {
@@ -117,6 +50,11 @@ int executeJob(int executeInBackground, PipelineJob* job)
         {
             if(strcmp(commandArr[i].cmd, job->args[0]) == 0)
             {
+                if(!commandArr[i].runInPipe)
+                {
+                    Log(LOGL_ERROR, "%s: cannot run in pipe or redirection\n", job->args[0]);
+                    exit(EXIT_FAILURE);
+                }
                 lastCommandStatus = 0;
                 int status = commandArr[i].func(job->argc, job->args);
                 lastCommandStatus = status;
@@ -156,7 +94,8 @@ int executeJob(int executeInBackground, PipelineJob* job)
 
 int executePipeline(int executeInBackground, PipelineJob* pipelineJob, int elapsed)
 {
-    if(!executeInBackground && pipelineJob->next == NULL)
+    if(!executeInBackground && pipelineJob->next == NULL
+            && pipelineJob->inputFile == NULL && pipelineJob->outputFile == NULL)
     {
         lastCommandTime = elapsed;
         for(int i = 0; i < commandCount; i++)
@@ -173,12 +112,12 @@ int executePipeline(int executeInBackground, PipelineJob* pipelineJob, int elaps
 
     if(executeInBackground && pipelineJob->next != NULL)
     {
-        Log(LOGL_ERROR, "execute error: pipeline jobs cannot be piped\n");
+        Log(LOGL_ERROR, "execute error: background jobs cannot be piped\n");
         return -1;
     }
 
-    int stdin = dup(STDIN_FILENO);
-    int stdout = dup(STDOUT_FILENO);
+    // int stdin = dup(STDIN_FILENO);
+    // int stdout = dup(STDOUT_FILENO);
 
     lastCommandTime = elapsed;
     lastCommandStatus = 0;
@@ -190,9 +129,31 @@ int executePipeline(int executeInBackground, PipelineJob* pipelineJob, int elaps
             if(pipe(job->fd) < 0)
             {
                 cleanPipeline(pipelineJob);
-                dup2(stdin, STDIN_FILENO);
-                dup2(stdout, STDOUT_FILENO);
+                // dup2(stdin, STDIN_FILENO);
+                // dup2(stdout, STDOUT_FILENO);
                 LogPError("pipe error");
+                return -1;
+            }
+        } else if(job->outputFile != NULL)
+        {
+            int mode = O_WRONLY | O_CREAT;
+            if(job->appendOutput) mode |= O_APPEND;
+
+            job->fd[1] = open(job->outputFile, mode, 0644);
+            if(job->fd[1] == -1)
+            {
+                cleanPipeline(pipelineJob);
+                LogPError("redirection error");
+                return -1;
+            }
+        }
+        if(job->prev == NULL && job->inputFile != NULL)
+        {
+            job->in = open(job->inputFile, O_RDONLY);
+            if(job->in == -1)
+            {
+                cleanPipeline(pipelineJob);
+                LogPError("redirection error");
                 return -1;
             }
         }
@@ -218,10 +179,10 @@ int executePipeline(int executeInBackground, PipelineJob* pipelineJob, int elaps
             close(job->fd[1]);
             job->fd[1] = -1;
         }
-        dup2(stdout, STDOUT_FILENO);
+        // dup2(stdout, STDOUT_FILENO);
         job = job->next;
     }
-    dup2(stdin, STDIN_FILENO);
+    // dup2(stdin, STDIN_FILENO);
     cleanPipeline(pipelineJob);
     return 0;
 }
